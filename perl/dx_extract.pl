@@ -15,12 +15,12 @@ use File::Path 'rmtree';    # Exported by default
 use Data::Dumper;
 use Excel::Writer::XLSX;
 
-our $VERSION = '0.0.15';    # version of this script
+our $VERSION = '0.0.16';    # version of this script
 
 ##  Custom variables go here ##
 
 # dx extract folder [files for parsing]
-my $dx_extract = '/home/user1/dx_extract/';
+my $dx_extract = '/home/user1/dx_extract_watch/';
 
 # dx pass folder [processed files]
 my $dx_pass = '/home/user1/dx_pass/';
@@ -75,7 +75,7 @@ foreach (@folders) {
     #    mkdir($_) unless ( -d $_ );
     if ( !-d ) { print " - not found, so creating ...\n"; mkdir; }
     else       { print " - OK\n"; }
-
+}
     # Add readme.txt to dx_extract watch folder
     my $readme = $dx_extract . 'readme.txt';
     if ( !open my $README, '>', $readme ) {
@@ -102,8 +102,9 @@ ATTIN is part of the Express Tools found in Full ACAD (or via the menu, Express 
       ## If you are irritated by every rub, how will you be polished? - Rumi ##
 NOTE
         print $README "$read_me";
+        close $README or carp "  could not close $read_me";
     }
-}    # End of creating folders sub
+
 
 ## read_dx_extract sub to read dx files folder ##
 
