@@ -15,7 +15,7 @@ use File::Path 'rmtree';    # Exported by default
 use Data::Dumper;
 use Excel::Writer::XLSX;
 
-our $VERSION = '0.0.16';    # version of this script
+our $VERSION = '0.0.18';    # version of this script
 
 ##  Custom variables go here ##
 
@@ -494,12 +494,12 @@ sub excelout {
 'The attout tab shows data from a CAD attout file in spread sheet form.  Blank fields simply contain no data, i.e. they are empty.  Fields containing <> are not valid for that column.'
     );
 
-    $worksheet_rm->write( 'B15', 'DEBUG INFO:' );
+    $worksheet_rm->write( 'B15', 'Debug info:' );
     $worksheet_rm->write( 'B16',
-"This sheet was created from $attout_basename a $status{'FileType'}, Title: $status{'DocTitle'}"
+"This sheet was created from $attout_basename, derived from a $status{'FileType'}, Title: $status{'DocTitle'}"
     );
     $worksheet_rm->write( 'B17',
-        "ATTIRB,5 count $status{'Attrib5'}; SEQEND count $status{'Seqend'}" );
+        "ATTIRB  5 count $status{'Attrib5'}; SEQEND count $status{'Seqend'}" );
 
     my $worksheet_attout = $workbook->add_worksheet('attout');
 
@@ -614,6 +614,12 @@ while ( sleep 1 ) {
                 my $line = <$XFILE>;
 
 # Test files created in Linux have \n, Windows needs \r\n, just matching to end $ also depends on newline, hence \r?\n
+# Check first line of file to see if it is a valid ascii dxf & starts with a double space 0
+            if ( $line =~ /^AutoCAD\sBinary\sDXF/xsm ){
+               print "  dxf file found is in binary format and will not be processed\n";
+               } 
+               # In the future binary dxf may be supported and will detected at this point
+             
                 if ( $line =~ /^[ ]{2}0\r?\n/x ) {
                     print "  $_ header looks OK, lets dig deeper\n";
                     close $XFILE or carp "Unable to close $dx file";
@@ -676,7 +682,7 @@ while ( sleep 1 ) {
                 }    # end of if $line header looks OK
                 else {
                     print
-"  $_ has the wrong header for a dx file, moving to $dx_fail\n";
+"  $_ has the wrong header for a dx file \n  ASCII dx headers start '  0' and this is missing so moving file to $dx_fail\n";
                     close $XFILE or carp "Unable to close $_ file";
 
                     # Move bad dx file to fail directory
@@ -700,7 +706,7 @@ while ( sleep 1 ) {
 "  Attout file for excel creation is $atto, state is $dx_state \n";
             excelout( $atto, $dx_xlsx );
         }
-        else { print " dx file was invalid so skipping excel creation\n"; }
+        else { print "  dx file was invalid so skipping excel creation\n"; }
 
     }    # end of foreach dx_file
 
