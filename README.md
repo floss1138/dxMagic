@@ -1,7 +1,7 @@
 # dxMagic
 Proof of concept DXF and DXX file parser to extract attribute metadata
 
-dxMagic is a proof of concept attempt to take dxx output from AutoKAD LT/ProgKAD and turn it into an ATTOUT formatted text file.  This provides similar results to the ATTOUT function available in the full version of AutokAD but using the ATTEXT function instead.  With little modification it is possible to extend dxx parsing to dxf files.  This makes it possible to extract attribute data directly from the drawing file without the need to open it in a CAD package.   
+dxMagic is a proof of concept attempt to take dxx output from AutoKAD LT/ProgKAD and turn it into an ATTOUT formatted text file.  This provides similar results to the ATTOUT function available in the full version of AutokAD but using the `ATTEXT` function instead of `ATTOUT`.  With little modification it is possible to extend dxx parsing to ASCII dxf files.  This makes it possible to extract attribute data directly from the drawing file without the need to open it in a CAD package.   
 
 ### Looking for a CAD tutorial?
 Please excuse the alternative spellings; they are intended to prevent search engines picking up this document. Some AutoKAD commands will be explained but this is not a CAD tutorial. There are lots of good tutorials for AutoKAD. This is not one of them.
@@ -21,6 +21,16 @@ A future plan is to try and merge metadata directly back into a dxf file with th
 ### Installing dxMagic
 dxMagic is just a Perl script.  Excel creation requires Excel::Writer::XLSX module to be installed.  If you need to run this on Windows, install Strawberry Perl, user cpan to install cpanm,`cpan App::cpanminus`,  then install the module `cpanm Excel::Writer::XLSX`.  Edit the script header to create the necessary folders (with appropriate slash separators for your OS).
 
+## A note on file formats ##
+.dwg AutoKAD proprietary drawing format    
+.dxf Drawing interchange format in ASCII or binary (always ASCII before 2010) see `DXFOUT`, `DXFIN`    
+.dxb Drawing interchange binary used for flattening 3D wireframe to 2D vectors    
+.dxx Drawing interchange format but a selected fragment of the drawing in dxf format    
+.dwf Design Web Format, an open format based on ISO/IEC 29500-2:2008, see also DWFx  
+
+In ProgKAD the ASCII or binary dxf is an obvious *save as* file selection.  In AutoKAD, binary dxf is selected in the *save as* Tools drop down >  Options > DXF Options tab,  Default is ASCII.   
+Although binary files are smaller and preserve floating point accuracy from the original drawing, only ASCII dxf is supported by dxmagic.
+	
 ## AutoKAD metadata - a concise explanation for programmers
 
 AutoKAD can group graphical lines and key/value data by creating a block.  This allows for easy duplication of commonly used items; for example, a block can be created for a chair and re-used several times in an office layout.  The chair block can optionally contain multiple key/value pairs of metadata, called attributes, designed to describe the chair or furniture class object.
