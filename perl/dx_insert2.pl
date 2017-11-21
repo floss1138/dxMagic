@@ -4,7 +4,8 @@ use warnings;
 use Carp;
 
 ## dxMagic dx_inserts attin metadata into a dxf file ##
-## replaces dxf attribute data, if the file names and metadata references match the corresponding attin.txt & dxf files ##
+## reads attout.txt formatted file into hof_blocks then uses this to ##
+## replace dxf attribute data, if the file names and metadata references match the corresponding attin.txt & dxf files ##
 
 use POSIX qw( strftime );
 use English qw(-no_match_vars);
@@ -396,6 +397,9 @@ sub xparser {
 
 ### The Program ###
 
+# hash of attays to hold to hold lines from attout file
+my %hof_blocks;
+
 # loop forever with a 1 second pause between runs
 while ( sleep 1 ) {
 
@@ -410,24 +414,23 @@ while ( sleep 1 ) {
 
         # set state to valid as dx files exist
         
-        my $dx = $_;
-        print "  Checking $dx is static ...";
-        my $stat1 = statnseek($dx);
+        my $attin = $_;
+        print "  Checking $attin is static ...";
+        my $stat1 = statnseek($attin);
         sleep 1;
-        my $stat2 = statnseek($dx);
+        my $stat2 = statnseek($attin);
 
         # If file is static stat check will be the same string
         if ( $stat1 eq $stat2 ) {
             print "  OK\n";
 
             # If static, open file and check 1st line is acceptabale format
-            open my $XFILE, '<', $dx or carp failed to open $dx;
+            open my $ATTOUT, '<', $attin or carp failed to open $attin;
             
-                my $line = <$XFILE>;
+                my $line = <$ATTOUT>;
+             # Check first line starts with HANDLE
              if ($line =~ m/^HANDLE/xsm ){
-                print " First line is valid \n$line\n";
-
-
+             #   print " First line is valid \n$line\n";
              # split into chomped array
              my @attline = split( /\t/, $line );    # split on tab
 
@@ -437,11 +440,11 @@ while ( sleep 1 ) {
               # array to preserve order (other than HANDLE this does not matter but it makes debugging easier)
                 my @order = ($attline[0]);
                print "  First item in header is $order[0]\n";
-               my %hof_blocks;
-                # dont need header line in here as it does not maintain the order ...
+              
+                  # write header line to hash, where HANDLE, element 0, is the key
                   $hof_blocks{$order[0]} = \@attline;
                               
-                     print Dumper (\%hof_blocks);
+                    # print Dumper (\%hof_blocks);
 
                     #  attout file name with path will be $atto
                     #$atto = $dx_attout . basename($dx);
@@ -457,12 +460,12 @@ while ( sleep 1 ) {
                     
 
 
-                 while (<$XFILE>) {
+                 while (<$ATTOUT>) {
                      # If valid start to line
                     if ( $_ =~ /^'[0-9A-F]/xsm ) {
                      
-                        print ("$_");
-
+                   #     print ("$_");
+                       
                        my  @att = split( /\t/, $_ );    # split on tab
                            # It seems necessary to leave the newline in before the split as an empty attribute value
                            # will be missed if this is the last item in the intended array.  Chomp each value in the array
@@ -471,8 +474,11 @@ while ( sleep 1 ) {
                             $chomping =~ s/\r?\n$//;
                         # add handle reference to order array  
                         push @order, $att[0];
+                        
                         }
 
+                         # write array @att to hash, [0] is the key and the first element of the array
+                         $hof_blocks{$att[0]} = \@att;
 
 
                      
@@ -485,7 +491,19 @@ while ( sleep 1 ) {
         }    # if static
 
     }    # end of foreach dx_file
+   #  print Dumper (\%hof_blocks);
 
+# enable for debug
+#   foreach my $handles (keys %hof_blocks) {
+#   list  handle then the array (1st element is also handle) for debug
+#   print "  -v-v-v- $handles -v-v-v-\n";
+#       foreach my $attribs (@{$hof_blocks{$handles}}){
+#       print "$attribs\n";
+#       }
+#  }
+    # extract heading line from hash
+    my @heading = @{$hof_blocks{'HANDLE'}};
+    print "  Heading is @heading\n";
     print " \nEnd of processing, lets check the watchfolders again...\n";
 
     # set dx_state to invalid until more files found
