@@ -395,6 +395,33 @@ sub xparser {
 }    # End of xparser
 
 
+## dx_insert file checking sub
+# take file name with path as argument and check $dx_insert folder for a valid file
+# return 0 on success, 1 fails to open or not found, 2 invalid header
+sub insert_target {
+my ($dxf_target) = @_;
+# print "  looking for $dxf_target ... ";
+# open dxf and check if its valid
+    if ( !open my $TARGET, '<' , $dxf_target ) {
+    print "  Failed to open merge target $dxf_target\n";
+    return 1;
+    }
+    else {
+    my $first = <$TARGET>;
+        if ( $first =~ /^[ ]{2}0\r?\n/x ) {
+        print "  merge target looks like an ASCII .dxf file, lets continue\n";
+        close $TARGET or carp "could not close $dxf_target";
+        return 0;
+
+        }
+        
+        print "  target file header invalid: $first\n";
+        return '2';
+     } # else             
+
+    
+}   # End of insert_target sub
+
 ### The Program ###
 
 # hash of attays to hold to hold lines from attout file
@@ -406,7 +433,7 @@ while ( sleep 1 ) {
     # Read watch folder, looking for correctly named files
     my @attin_files = read_dx_attin($dx_attin);
 
-     print "  Candidates files for parsing are @attin_files\n";
+     print "  Candidate attin file(s) for parsing are @attin_files\n";
 
     # check candidate files are static and have expected header
 
@@ -415,6 +442,12 @@ while ( sleep 1 ) {
         # set state to valid as dx files exist
         
         my $attin = $_;
+        # Cheeck to see if a matching dx file is present in $dx_insert
+        my $target = $dx_insert . basename($attin);
+        # target is <name_of_attout>.dxf 
+        $target =~ s/\.txt$/\.dxf/x;
+        my $insert_status = insert_target($target);
+        print "  target is $target, status is $insert_status\n";
         print "  Checking $attin is static ...";
         my $stat1 = statnseek($attin);
         sleep 1;
@@ -501,9 +534,13 @@ while ( sleep 1 ) {
 #       print "$attribs\n";
 #       }
 #  }
-    # extract heading line from hash
+    # extract heading line from hash if it has been populated
+    if (%hof_blocks) {
     my @heading = @{$hof_blocks{'HANDLE'}};
     print "  Heading is @heading\n";
+    }
+    # clear hash of blocks before next run
+    undef %hof_blocks;
     print " \nEnd of processing, lets check the watchfolders again...\n";
 
     # set dx_state to invalid until more files found
