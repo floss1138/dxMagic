@@ -403,7 +403,7 @@ my ($dxf_target) = @_;
 # print "  looking for $dxf_target ... ";
 # open dxf and check if its valid
     if ( !open my $TARGET, '<' , $dxf_target ) {
-    print "  Failed to open merge target $dxf_target\n";
+    print "  Failed to open proposed merge target $dxf_target\n";
     return 1;
     }
     else {
@@ -415,7 +415,10 @@ my ($dxf_target) = @_;
 
         }
         
-        print "  target file header invalid: $first\n";
+        print "  target file header >$first< invalid, moving to $dx_fail\n";
+        # Move invalid target to $dx_fail
+        my $failed = $dx_fail . basename($dxf_target);
+         move( $dxf_target, $failed ) or croak "move of $first failed";
         return '2';
      } # else             
 
