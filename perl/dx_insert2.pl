@@ -20,7 +20,7 @@ our $VERSION = '0.0.02';    # version of this script
 ##  Custom variables go here ##
 
 # dx insert folder [files for parsing]
-my $dx_insert = '/home/user1/dx_dxf_insert/';
+my $dx_insert = '/home/user1/dx_dxf_WATCH/';
 
 # dx pass folder [processed files]
 my $dx_pass = '/home/user1/dx_pass/';
@@ -29,7 +29,7 @@ my $dx_pass = '/home/user1/dx_pass/';
 my $dx_fail = '/home/user1/dx_fail/';
 
 # dx attin folder [dx attout format metadata in either .txt or xlsx format to be replaced in corresponding dxf file]
-my $dx_attin = '/home/user1/dx_attin_watch/';
+my $dx_attin = '/home/user1/dx_attin_WATCH/';
 
 # Program variables go here:
 
@@ -61,11 +61,14 @@ foreach (@folders) {
       ## dxMagic $VERSION attribute attin watch folder ##   
 
 dxMagic insert takes attribute data from attribute.txt or attribute.xlsx formatted files,
-then inserts this back into the originating dxf file, similar to using ACADs ATTIN tool.
+then inserts this back into the originating .dxf file; similar to using ACADs ATTIN tool.
 
-Valid .txt and .xlsx files found in this folder will be processed and merged back into the originating .dxf file.
-The attribute metadata is replaced in the matching .dxf file, if found in $dx_insert.
-attout.txt files can be imported back into the originating drawing with the ATTIN command.
+*** Ensure that a matching .dxf is already in $dx_insert before presenting the attribute file *** 
+
+Valid .txt and .xlsx files found in this folder will be merged back into the originating .dxf file.
+Attribute metadata is replaced in the matching .dxf file.
+If no matching .dxf is found, the attribute file will be moved to the $dx_fail.
+
 The original file is then moved to $dx_pass or $dx_fail folder as appropriate.
 Files without txt and xlsx extensions will be ignored (including this readme.txt).
 
@@ -207,6 +210,15 @@ sub statnseek {
 # AcDbBlockTableRecord, (DOUBLE SPACE) 2,
 # AcDbDimStyleTableRecord, (DOUBLE SPACE) 2,
 # AcDbSymbolTableRecord, (DOUBLE SPACE) 2,
+
+# re-writing xparser as xinparser here:
+
+sub xinparser {
+    my ($dxf_file) = @_;
+
+    return 0;
+    }
+
 
 sub xparser {
     my ($xfile) = @_;
