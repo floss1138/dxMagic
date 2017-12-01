@@ -212,9 +212,26 @@ sub statnseek {
 # AcDbSymbolTableRecord, (DOUBLE SPACE) 2,
 
 # re-writing xparser as xinparser here:
-
+# Take target .dxf file and a pointer to headings/tags as input
 sub xinparser {
-    my ($dxf_file) = @_;
+    my ($dxf_file, $tags) = @_;
+    my $state = 'NOMATCH'; # current line state
+    # deref tags
+    my @properties = @$tags;
+    print "  Lets update values in $dxf_file, for tags:\n@properties\n";
+    open( my $DXFILE, '<', $dxf_file ) or croak "$dxf_file would not open";
+    while (<$DXFILE>) {
+        my $line = $_;
+        # print "  State is $state\n";
+        # Look for group 5 INSERT and then extract attribute metadata
+             if ( $line =~ /^INSERT\r?\n/x ) { $state = 'INSERT'; }
+             elsif ( $state eq 'INSERT' && $line =~ /^[ ]{2}5\r?\n/x ) {
+                 $state = 'INSERT5';
+                 # print "  State is now $state\n"; exit 1;
+          # TODO NEXT Find the handle and look it up ##  
+             }
+ 
+        } # End of while DXFILE
 
     return 0;
     }
@@ -452,13 +469,14 @@ while ( sleep 1 ) {
 
     # check candidate files are static and have expected header
 
+    my $target; # The internded dxf target tile name
     foreach (@attin_files) {
 
         # set state to valid as dx files exist
         
         my $attin = $_;
         # Cheeck to see if a matching dx file is present in $dx_insert
-        my $target = $dx_insert . basename($attin);
+        $target = $dx_insert . basename($attin);
         # target is <name_of_attout>.dxf 
         $target =~ s/\.txt$/\.dxf/x;
         my $insert_status = insert_target($target);
@@ -553,7 +571,10 @@ while ( sleep 1 ) {
     if (%hof_blocks) {
     my @heading = @{$hof_blocks{'HANDLE'}};
     print "  Heading is @heading\n";
+
+    xinparser($target, \@heading);
     }
+
     # clear hash of blocks before next run
     undef %hof_blocks;
     print " \nEnd of processing, lets check the watchfolders again...\n";
