@@ -17,6 +17,7 @@ use Data::Dumper;
 
 our $VERSION = '0.0.02';    # version of this script
 
+
 ##  Custom variables go here ##
 
 # dx insert folder [files for parsing]
@@ -32,6 +33,9 @@ my $dx_fail = '/home/user1/dx_fail/';
 my $dx_attin = '/home/user1/dx_attin_WATCH/';
 
 # Program variables go here:
+
+# hash of attributes to hold to hold lines from attout file is 
+my %hof_blocks;
 
 my @folders = ( $dx_insert, $dx_pass, $dx_fail, $dx_attin );
 
@@ -218,6 +222,10 @@ sub xinparser {
     my $state = 'NOMATCH'; # current line state
     # deref tags
     my @properties = @$tags;
+    my $handle = 'No handle set';
+    my $blockname = 'No blockname set';
+    my $tagvalue = 'No tagvalue set';
+    my $tagkey = 'No tagkey set';
     print "  Lets update values in $dxf_file, for tags:\n@properties\n";
     open( my $DXFILE, '<', $dxf_file ) or croak "$dxf_file would not open";
     while (<$DXFILE>) {
@@ -230,16 +238,88 @@ sub xinparser {
                  # print "  State is now $state\n"; exit 1;
           # TODO NEXT Find the handle and look it up ##  
              }
+             elsif ( $state eq 'INSERT5' ) {
+                 $line =~ s/\r?\n$//x;
+                 # if ( $handle ne $line ) { print "$handle ";}
+                 $handle = $line;
+                 $state  = "H_$handle" . '_';
+             }
+             elsif ( $state =~ /^H_.*_/x && $line =~ /^AcDbBlockReference/x ) { 
+                $state = $state . 'AcDbBlock';
+            }
+            elsif ( $state =~ /^H_.*AcDbBlock/x && $line =~ /^[ ]{2}2\r?\n/x ) { 
+                $state = $state . '2';
+            }
+            elsif ( $state =~ /^H_.*AcDbBlock2/x ) { 
+                $line =~ s/\r?\n$//x;
+                $blockname = $line;
+                $state     = 'BLOCKNAME';
+            }
+            elsif ( $state eq 'BLOCKNAME' && $line =~ /^ATTRIB/x ) {
+                $state = 'ATTRIB';
+            }
+
+
+            elsif ( $state eq 'ATTRIB' && $line =~ /^[ ]{2}5\r?\n/x ) {
+                $state = 'ATTRIB5';
+            }
+            elsif ( $state eq 'ATTRIB5' && $line =~ /^[ ]{2}1\r?\n/x ) {
+                $state = 'VALUE';
+            }
+            elsif ( $state eq 'VALUE' ) {
+                $state = 'TAGVALUE';
+                $line =~ s/\r?\n$//x;
+                $tagvalue = $line;
+
+# print " TAGVALUE: blockname for $handle is $blockname, state is $state, line is $line\n"
+            }
+elsif ( $state eq 'TAGVALUE' && $line =~ /^[ ]{2}2\r?\n/x ) {
+                $state = 'TAG';
+            }
+            elsif ( $state eq 'TAG' ) {
+# Keep looking for more attributes by setting state to BLOCKNAME to search for next value (value preceeds tag/key)
+                $state = 'BLOCKNAME';
+                $line =~ s/\r?\n$//x;
+                $tagkey = $line;
+
+                 print "Target Handle is $handle, Key is >$line<, Value is >$tagvalue< \n";
+                # array ref must not be undefined or script will bail, so testing for valid keys in $hof_blocks
+                
+                    # add apostorphe to handle name to match that used in attout/attin 
+                    my $handle = "'".$handle; 
+                    # print " handle is $handle\n";
+                        if ( exists $hof_blocks{$handle}) { 
+                        # print " $handle exists!";
+                        
+                        my @attribs = @{$hof_blocks{$handle}};
+                        print "  Hash from attin contains @attribs\n";
+                        }
+                        else { print "  $handle was missing from attin data\n";}
+                    # print Dumper (\%hof_blocks);i
+                    # foreach my $handles (keys %hof_blocks) { print "$handles ";}
+                      
+                    }
+                
+                     # print "  Hash from attin contains @attribs\n";
+
+                # TODO Replace value of key/value pairs to hash of block handles
+                # But the line containing the value has gone ...
+                # So its going to be necessary to write a new file and cache the attributedatai
+                # open with a .tmp extension move original to done, then rename .tmp .dxf
+                # and also move the completed attin.txt to done  
+                # here   $hof_blocks{"$handle"}{"$tagkey"} = "$tagvalue";
+                
+             
  
         } # End of while DXFILE
 
     return 0;
     }
 
-
+# old xparser here for comparison - delete it later
 sub xparser {
     my ($xfile) = @_;
-    my %hof_blocks;
+    %hof_blocks;
 
 # dx metadata coverted to hash of block hashes, these are the droids we are after
 # Desired result of each file parsed, a handle with hash of: key (tag name), (attribute tag) value pairs.
@@ -456,8 +536,7 @@ my ($dxf_target) = @_;
 
 ### The Program ###
 
-# hash of attays to hold to hold lines from attout file
-my %hof_blocks;
+# hash of attays to hold to hold lines from attout file is %hof_blocks;
 
 # loop forever with a 1 second pause between runs
 while ( sleep 1 ) {
