@@ -2,6 +2,8 @@
 use strict;
 use warnings;
 use Carp;
+use List::Util qw(first);
+# used to find index of a specific array value
 
 ## dxMagic dx_inserts attin metadata into a dxf file ##
 ## reads attout.txt formatted file into hof_blocks then uses this to ##
@@ -193,13 +195,10 @@ sub statnseek {
 # So for both  using ATTRIB, (DOUBLE SPACE) 5, (DOUBLE SPACE) 1,<TAG VALUE>, (DOUBLE SPACE) 2, <TAG KEY>, instead of using AcDBAttribute
 # ATTRIB, (DS)5, is followed by an incremented handel in dxx and an incremented handel then 330,<INSERT_HANDEL> in dxf, 330 is a pointer to the owner object
 
-# TODOs #  process BLOCK (DS)5, AcDbBlockBegin or set state higher for AcDbBlockBegin and others ...
-# set state to something higher (try BLOCKNAME) for AcDblockBegin, AcDbBlockTableRecord, AcDbDimStyleTableRecord, AcDbSymbolTableRecord preceed (DS)2
-# use ATTRIB, (DS)5, instead of AcDbAttribute & allow for TAG before VALUE by having a $state VALUE OR $state TAG condition
+# using ATTRIB, (DS)5, instead of AcDbAttribute & allow for TAG before VALUE by having a $state VALUE OR $state TAG condition
 # Capture Document $TITLE, (DS)1, <Drawing Tilte>
 # Capture layout (viewport) tabs LAYOUT, (DS)5, AcDbLayout, (DS)1, <Layout Tag name>
-
-# Only capturing one value, key pair so far ... use $ state to specifiy the actual match variable next required.
+# using $state to specifiy the actual match variable next required.
 
 # Also looking for the dxf version (not present in a dxx)
 # VERSION:  (DOUBLE SPACE) 9, $ACADVER, <VERSION CODE>,
@@ -236,7 +235,7 @@ sub xinparser {
              elsif ( $state eq 'INSERT' && $line =~ /^[ ]{2}5\r?\n/x ) {
                  $state = 'INSERT5';
                  # print "  State is now $state\n"; exit 1;
-          # TODO NEXT Find the handle and look it up ##  
+          # Find the handle and look it up   
              }
              elsif ( $state eq 'INSERT5' ) {
                  $line =~ s/\r?\n$//x;
@@ -282,7 +281,7 @@ elsif ( $state eq 'TAGVALUE' && $line =~ /^[ ]{2}2\r?\n/x ) {
                 $line =~ s/\r?\n$//x;
                 $tagkey = $line;
 
-                 print "Target Handle is $handle, Key is >$line<, Value is >$tagvalue< \n";
+                 print "\nTarget Handle is $handle, Key is >$line<, Value is >$tagvalue< \n";
                 # array ref must not be undefined or script will bail, so testing for valid keys in $hof_blocks
                 
                     # add apostorphe to handle name to match that used in attout/attin 
@@ -292,10 +291,19 @@ elsif ( $state eq 'TAGVALUE' && $line =~ /^[ ]{2}2\r?\n/x ) {
                         # print " $handle exists!";
                         
                         my @attribs = @{$hof_blocks{$handle}};
+                        # find positon of tag property in array based on 
+                        
                         print "  Hash from attin contains @attribs\n";
+                        # using List::Util to find index position of the key in $line within @properties
+                        my $index = first {$properties[$_] eq $line} 0 .. $#properties;
+                        my $tagvalue_in_dxf = $hof_blocks{$handle}[$index];
+                        print "  Blockname should be $hof_blocks{$handle}[1], $line is at index $index, tagvalue is $tagvalue, tagvalue in file is $tagvalue_in_dxf\n";
+                        
+                      # if $tagvalue eq $tagvalue_in_dxf then there is no change
+                       if ($tagvalue ne $tagvalue_in_dxf) { print "  dxf needs updating !!\n"; exit 3;}
                         }
                         else { print "  $handle was missing from attin data\n";}
-                    # print Dumper (\%hof_blocks);i
+                    # print Dumper (\%hof_blocks);
                     # foreach my $handles (keys %hof_blocks) { print "$handles ";}
                       
                     }
@@ -304,11 +312,11 @@ elsif ( $state eq 'TAGVALUE' && $line =~ /^[ ]{2}2\r?\n/x ) {
 
                 # TODO Replace value of key/value pairs to hash of block handles
                 # But the line containing the value has gone ...
-                # So its going to be necessary to write a new file and cache the attributedatai
+                # So its going to be necessary to write a new file and cache the attribute data
                 # open with a .tmp extension move original to done, then rename .tmp .dxf
                 # and also move the completed attin.txt to done  
                 # here   $hof_blocks{"$handle"}{"$tagkey"} = "$tagvalue";
-                
+               # or use List::Util qw (first);
              
  
         } # End of while DXFILE
