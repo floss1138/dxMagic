@@ -225,6 +225,7 @@ sub xinparser {
     my $blockname = 'No blockname set';
     my $tagvalue = 'No tagvalue set';
     my $tagkey = 'No tagkey set';
+    my $replaced = 0; # number of replaced values in dxf
     print "  Lets update values in $dxf_file, for tags:\n@properties\n";
     open( my $DXFILE, '<', $dxf_file ) or croak "$dxf_file would not open";
     while (<$DXFILE>) {
@@ -281,26 +282,32 @@ elsif ( $state eq 'TAGVALUE' && $line =~ /^[ ]{2}2\r?\n/x ) {
                 $line =~ s/\r?\n$//x;
                 $tagkey = $line;
 
-                 print "\nTarget Handle is $handle, Key is >$line<, Value is >$tagvalue< \n";
+                # show handle with key and value taken from DXF for debug
+                # print "\nTarget Handle is $handle, Key from dxf is >$line<, Value is >$tagvalue< \n";
                 # array ref must not be undefined or script will bail, so testing for valid keys in $hof_blocks
                 
                     # add apostorphe to handle name to match that used in attout/attin 
                     my $handle = "'".$handle; 
                     # print " handle is $handle\n";
                         if ( exists $hof_blocks{$handle}) { 
-                        # print " $handle exists!";
+                        # print " $handle of dxf exists in the attin hash";
                         
                         my @attribs = @{$hof_blocks{$handle}};
                         # find positon of tag property in array based on 
                         
-                        print "  Hash from attin contains @attribs\n";
-                        # using List::Util to find index position of the key in $line within @properties
+                        # show attributes from hash for debug:
+                        # print "  Hash from attin contains @attribs\n";
+
+                        # using List::Util to find index position of the key in $line within @properties, $# gives number of last element
                         my $index = first {$properties[$_] eq $line} 0 .. $#properties;
-                        my $tagvalue_in_dxf = $hof_blocks{$handle}[$index];
-                        print "  Blockname should be $hof_blocks{$handle}[1], $line is at index $index, tagvalue is $tagvalue, tagvalue in file is $tagvalue_in_dxf\n";
+                        my $tagvalue_in_hofb = $hof_blocks{$handle}[$index];
+                        print "  Handle is $handle, Blockname from attin should be $hof_blocks{$handle}[1], $line is at index $index, tagvalue in dxf is $tagvalue, tagvalue in attin hash is  $tagvalue_in_hofb\n";
                         
+                        # Enable quit for dbug if attin value contains BNC
+                        # if ($tagvalue eq 'BNC') {print "   BNC value found so will exit now ...\n"; exit 1;}         
+                
                       # if $tagvalue eq $tagvalue_in_dxf then there is no change
-                       if ($tagvalue ne $tagvalue_in_dxf) { print "  dxf needs updating !!\n"; exit 3;}
+                       if ($tagvalue ne $tagvalue_in_hofb) { print "  *** dxf needs updating with $tagvalue ***\n";  $replaced ++; exit 0;}
                         }
                         else { print "  $handle was missing from attin data\n";}
                     # print Dumper (\%hof_blocks);
@@ -310,7 +317,7 @@ elsif ( $state eq 'TAGVALUE' && $line =~ /^[ ]{2}2\r?\n/x ) {
                 
                      # print "  Hash from attin contains @attribs\n";
 
-                # TODO Replace value of key/value pairs to hash of block handles
+                # TODO Replace value of key/value pairs to hash of block handles, check index is incrementing.  Some values are currently being lost from the dxf side
                 # But the line containing the value has gone ...
                 # So its going to be necessary to write a new file and cache the attribute data
                 # open with a .tmp extension move original to done, then rename .tmp .dxf
@@ -321,13 +328,13 @@ elsif ( $state eq 'TAGVALUE' && $line =~ /^[ ]{2}2\r?\n/x ) {
  
         } # End of while DXFILE
 
-    return 0;
+    return $replaced;
     }
 
 # old xparser here for comparison - delete it later
 sub xparser {
     my ($xfile) = @_;
-    %hof_blocks;
+    # %hof_blocks; commeted out to prevent error in running code
 
 # dx metadata coverted to hash of block hashes, these are the droids we are after
 # Desired result of each file parsed, a handle with hash of: key (tag name), (attribute tag) value pairs.
@@ -655,16 +662,17 @@ while ( sleep 1 ) {
 #       }
 #  }
     # extract heading line from hash if it has been populated
+    my $replaced_count = 0; # Replaced value count returned from xinparser 
     if (%hof_blocks) {
     my @heading = @{$hof_blocks{'HANDLE'}};
     print "  Heading is @heading\n";
 
-    xinparser($target, \@heading);
+    $replaced_count = xinparser($target, \@heading);
     }
 
     # clear hash of blocks before next run
     undef %hof_blocks;
-    print " \nEnd of processing, lets check the watchfolders again...\n";
+    print " \nEnd of processing, $replaced_count replacments , lets check the watchfolders again...\n";
 
     # set dx_state to invalid until more files found
 
