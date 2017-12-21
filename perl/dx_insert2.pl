@@ -226,9 +226,14 @@ sub xinparser {
     my $tagvalue = 'No tagvalue set';
     my $tagkey = 'No tagkey set';
     my $replaced = 0; # number of replaced values in dxf
-    print "  Lets update values in $dxf_file, for tags:\n@properties\n";
-    open( my $DXFILE, '<', $dxf_file ) or croak "$dxf_file would not open";
-    while (<$DXFILE>) {
+    #  new .dxf file + substitutions is created with a .tmp extension of the original 
+    my $temp_dxf = $dxf_file;
+       $temp_dxf =~ s/\.dxf$/\.tmp/x;
+    print "  Lets update values in $dxf_file, for tags:\n@properties\n   and write to $temp_dxf\n"; 
+    open( my $DXFFILE, '<', $dxf_file ) or croak "$dxf_file would not open";
+    open( my $DXFTEMP, '>', $temp_dxf ) or croak "$temp_dxf would not open"; 
+    # print $DXFTEMP "Test"; 
+    while (<$DXFFILE>) {
         my $line = $_;
         # print "  State is $state\n";
         # Look for group 5 INSERT and then extract attribute metadata
@@ -298,7 +303,7 @@ elsif ( $state eq 'TAGVALUE' && $line =~ /^[ ]{2}2\r?\n/x ) {
                         # show attributes from hash for debug:
                         # print "  Hash from attin contains @attribs\n";
 
-                        # using List::Util to find index position of the key in $line within @properties, $# gives number of last element
+                        # using List::Util like Javascript findIndex() for the position of the tag key $line within @properties, $# gives number of last element
                         my $index = first {$properties[$_] eq $line} 0 .. $#properties;
                         my $tagvalue_in_hofb = $hof_blocks{$handle}[$index];
                         print "  Handle is $handle, Blockname from attin should be $hof_blocks{$handle}[1], $line is at index $index, tagvalue in dxf is $tagvalue, tagvalue in attin hash is  $tagvalue_in_hofb\n";
@@ -312,22 +317,25 @@ elsif ( $state eq 'TAGVALUE' && $line =~ /^[ ]{2}2\r?\n/x ) {
                         else { print "  $handle was missing from attin data\n";}
                     # print Dumper (\%hof_blocks);
                     # foreach my $handles (keys %hof_blocks) { print "$handles ";}
-                      
-                    }
-                
+
+ 
+                    } # end of if Estate eq TAG
+                    # write current line to dxf temp file
+                     print $DXFTEMP "$line";
+                    # if $line matched it will have had the new line stripped so needs restoring 
                      # print "  Hash from attin contains @attribs\n";
 
                 # TODO Replace value of key/value pairs to hash of block handles, check index is incrementing.  Some values are currently being lost from the dxf side
                 # But the line containing the value has gone ...
                 # So its going to be necessary to write a new file and cache the attribute data
-                # open with a .tmp extension move original to done, then rename .tmp .dxf
+                # open with a .tmp extension move original to done, then rename .tmp .dxf and close all the open file handles
                 # and also move the completed attin.txt to done  
                 # here   $hof_blocks{"$handle"}{"$tagkey"} = "$tagvalue";
                # or use List::Util qw (first);
              
  
         } # End of while DXFILE
-
+    #close dxf & .tmp files here
     return $replaced;
     }
 
