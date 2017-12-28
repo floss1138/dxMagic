@@ -215,14 +215,19 @@ sub statnseek {
 # AcDbDimStyleTableRecord, (DOUBLE SPACE) 2,
 # AcDbSymbolTableRecord, (DOUBLE SPACE) 2,
 
-# re-writing xparser as xinparser here:
+# xinparser #
 # Take target .dxf file and a pointer to headings/tags as input
+# As the value comes before the property on approach is to cache 
+# the ATTRIB section and replace the value if necessary
+# $attrib cache is undefined when not in use, chaned to empty once ATTRIB is encountered
+# then populated until the next the property is found & replacement of the
+# .dxf value from attin file can be made
 sub xinparser {
     my ( $dxf_file, $tags ) = @_;
     my $state      = 'NOMATCH';            # current line state
                                            # deref tags
     my @properties = @$tags;
-    my $attrib_cache ;
+    my $attrib_cache ; # undefined
     my $handle     = 'No handle set';
     my $blockname  = 'No blockname set';
     my $tagvalue   = 'No tagvalue set';
@@ -295,7 +300,7 @@ sub xinparser {
             $state = 'TAG';
         }
         elsif ( $state eq 'TAG' ) {
-
+# Once a TAG is found the previous value may need replacing
 # Keep looking for more attributes by setting state to BLOCKNAME to search for next value (value preceeds tag/key)
             $state = 'BLOCKNAME';
            # $line =~ s/\r?\n$//x;
@@ -326,35 +331,48 @@ sub xinparser {
                 my $index =
                   first { $properties[$_] eq $tagkey } 0 .. $#properties;
                 my $tagvalue_in_hofb = $hof_blocks{$handle}[$index];
-                print
-"  Handle is $handle, Blockname from attin should be $hof_blocks{$handle}[1], $tagkey is at index $index, tagvalue in dxf is $tagvalue, tagvalue in attin hash is  $tagvalue_in_hofb\n";
+#  Enable for debug to see lines with tag/values 
+#                print
+#"  Handle is $handle, Blockname from attin should be $hof_blocks{$handle}[1], $tagkey is at index $index, tagvalue in dxf is $tagvalue, tagvalue in attin hash is  $tagvalue_in_hofb\n";
 
-# Enable quit for dbug if attin value contains BNC
+# Enable quit for dbug if attin value contains for example BNC
 # if ($tagvalue eq 'BNC') {print "   BNC value found so will exit now ...\n"; exit 1;}
 
-                # if $tagvalue eq $tagvalue_in_dxf then there is no change
+                # if $tagvalue ne $tagvalue_in_dxf then replace the tagvalue and write to file
                 if ( $tagvalue ne $tagvalue_in_hofb ) {
                     print "  *** dxf needs $tagvalue updating with $tagvalue_in_hofb ***\n";
-                    # tagvalue follows a double space 1 on the previous line to prevent an random match
+                    # tagvalue follows a double space 1 on the previous line to prevent a random match
+                    # replace value in cache
                     $attrib_cache =~ s/^[ ]{2}1\r\n$tagvalue/  1\r\n$tagvalue_in_hofb/xsm;
-                    print "\n Attribute cache:\n$attrib_cache\n";
+
+                    # show attribute cahce for debug
+                    # print "\n Attribute cache:\n$attrib_cache\n";
+
+                    # output repalced cache content to file
+                    print $DXFTEMP "$attrib_cache";
+                    # increment replaced count
                     $replaced++;
-                    exit 0;
+                    # flush cache by making it undef, and continue
+                    undef $attrib_cache;
+                   
                 }
-            }
+            } # end of if handle exists in hash of blocks
             else { print "  $handle was missing from attin data\n"; }
 
             # print Dumper (\%hof_blocks);
             # foreach my $handles (keys %hof_blocks) { print "$handles ";}
-            $attrib_cache = $attrib_cache.$line;
-            # flush cache and continue
-            undef $attrib_cache;
+           
+          
+            # if $tagvalue from attin eq $tagvalue_in_dxf then there is no change, dump the cached content to file and clear the cache
+            # If there was replaced value then cache would have been cleared above, so defined check prevents and uninitialised error
+            if (defined $attrib_cache) {print $DXFTEMP "$attrib_cache"; undef $attrib_cache;}
+
         }    # end of if $state eq TAG
-         # write current line to dxf temp file.  If $line was processed then newline was removed - this needs to be assigned to a new var before the strip
+         
        # if attrib cache not defined then its being populated following a ATTRIB line so keep filling it:
         if (defined $attrib_cache) {$attrib_cache .= $line;} 
-        # if cache is filling, dont print out the next line here:  still TODO
-        print $DXFTEMP "$line";
+        # if cache is filling, dont print out the next line but if it not part of an ATTRIB group then it OK to simply duplicate the original .dxf 
+       if (!defined $attrib_cache) { print $DXFTEMP "$line";}
 
     # if ($line =~ m/C9859/xsm) { print "\n C9859 found - exiting\n"; exit 0; }
     # if $line matched it will have had the new line stripped so needs restoring
@@ -370,6 +388,10 @@ sub xinparser {
 
     }    # End of while DXFILE
          #close dxf & .tmp files here
+    # move attin file to passed directory
+   # my $passed = $dx_pass . basename($xfile);
+    print "Moving attribute file to $dx_pass ... \n";
+    # replacement now complete, return replaced count
     return $replaced;
 }
 
