@@ -24,6 +24,12 @@ dx_dxf_WATCH is for the .dxf file intended for attribute replacement.
 During attribute replacement a temporary file will be created in dx_dxf_WATCH with a .tmp extension.  The updated file will replace the original .dxf.
 The attribute .txt file will be moved to the pass folder on successful completion; however, the .dxf will remain in dx_dxf_WATCH pending further updates.   
 
+## USING dx_totxt (coming soon)
+dx_totxt takes the xlsx file created with dx_extract and converts it to attout.txt format.  This in turn can be inserted with dx_insert or imported with AutoKADs ATTIN command.   
+dx_xlsx_WATCH is for the .xlsx files produced by dx_extract. File must have an .xlsx extension.  
+dx_attin is where the converted file will be written. 
+The .xlsx file produced by dx_extract has the first 2 rows and the first column as margin space.  These must remain but must can be used for comments (these cells are not parsed).   
+
 ### Installing dxMagic
 dxMagic is just a Perl script.  Excel creation requires Excel::Writer::XLSX module to be installed.  If you need to run this on Windows, install Strawberry Perl, user cpan to install cpanm,`cpan App::cpanminus`,  then install the module `cpanm Excel::Writer::XLSX`.  Edit the script header to create the necessary folders (with appropriate slash separators for your OS).
 
