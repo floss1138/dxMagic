@@ -6,7 +6,7 @@ use Spreadsheet::Read; # required for xlsx read subroutine but this also require
 # for XLSX, Spreadsheet::ParseXLSX needs to be installed - this one is required
 # for XLS, Spreadsheet::ParseExcel needs to be installed
 # for Libre office Spreadsheet::ReadSXC needs to be installed
-
+# no warnings "uninitialized"; # prevents uninitialized warnings from ParseXLSX for blank cells in xlsx
 
 our $VERSION = '0.0.01';
 
@@ -42,7 +42,8 @@ print "\nattin file will be called $attin_file\n";
 open my $FILEOUT, ">", "$attin_file" or die "Cannot open output file $!";  # with append access does not overwrite original.  foreach is OK if file remains open i.e. adds to existing content
 local $" = "\t"; # set the output field separator to a tab
 my $blankcount=0;
-for (my $rowcount=4; $blankcount<3; $rowcount++)
+# Start processing sheet from 3rd line - this is the header.  1st 2 lines left blank as a top margin for notes
+for (my $rowcount=3; $blankcount<3; $rowcount++)
         {
     
         my @row = Spreadsheet::Read::row($xlsx->[2],$rowcount); # read each row into an array
@@ -55,12 +56,14 @@ for (my $rowcount=4; $blankcount<3; $rowcount++)
         if ($row > 1)
                 {
                 # print "row is $row >> @row\n"; This would print out here if there were empty values in a whole line
-                my $firstelement = $row[1]; # check second element in array - if its HANDLE or '[any_uppercase_or_numbers x 4] then its a handle value, @row[0] better written $row[0]
+                my $firstelement = $row[1]; # check second element in array - if its HANDLE or '[any_uppercase_or_numbers x 2] then its a handle value, @row[0] better written $row[0]
                         if ($firstelement =~ /^HANDLE|^\'[A-Z0-9]{2}/)
                         {
-                        # TODO remove 1st element before printing, enable if -e to encompase the attin creation
+                        # TODO enable if -e to encompase the attin creation
                         print "Row array contains: @row\n"; # send this to a file and you have attout, this prints to screen for debug
-    
+                        # exit 0;
+                        # Remove the margin i.e. the 1st element of array 
+                        my $margin = shift @row;    
                         print $FILEOUT "@row$/"; # The new line needs to be MS complient hence the $/ defined as \r\n 
                         } # close if ($firstelement...
                 } # close if ($row > 1...
