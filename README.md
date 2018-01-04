@@ -27,7 +27,7 @@ The attribute .txt file will be moved to the pass folder on successful completio
 ## USING dx_totxt (coming soon)
 dx_totxt takes the xlsx file created with dx_extract and converts it to attout.txt format.  This in turn can be inserted with dx_insert or imported with AutoKADs ATTIN command.   
 dx_xlsx_WATCH is for the .xlsx files produced by dx_extract. File must have an .xlsx extension.  
-dx_attin is where the converted file will be written. 
+dx_attin is the destination for the converted file.  attin/attout files should always have .txt extensions and Windows format new lines.   
 The .xlsx file produced by dx_extract has the first 2 rows and the first column as margin space.  These must remain but must can be used for comments (these cells are not parsed).   
 
 ### Installing dxMagic
