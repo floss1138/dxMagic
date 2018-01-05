@@ -76,12 +76,12 @@ NOTE
 
 ## Sub to read xlsxtotxt watch folder ##
 
-sub read_dx_attin {
+sub read_xlsxtotxt {
     my ($watch_folder) = @_;
 
-    # print "  reading watchfolder $watch_folder\n";
+    # print "  reading watchfolder $watch_folder\n"; exit 0;
     #  Define matching regex for dx files here
-    my $match = '.*(\.txt|\.xlsx)';
+    my $match = '.*\.xlsx';
 
     opendir( DIR, $watch_folder )
       || croak "can't opendir $watch_folder - program will terminate";
@@ -90,11 +90,10 @@ sub read_dx_attin {
       grep { !/^\./xms && -f "$watch_folder/$_" && (/$match/xsm) } readdir(DIR);
 
     # ignore readme.txt by removing if from the candidate array if found
-    my $index = 0;
-    $index++, until $candidates[$index] eq 'readme.txt';
-
- # splice is used a delete is deprecated.  1 is a single item at the index point
-    splice( @candidates, $index, 1 );
+    # my $index = 0;
+    # $index++, until $candidates[$index] eq 'readme.txt';
+    # splice is used a delete is deprecated.  1 is a single item at the index point
+    # splice( @candidates, $index, 1 );
 
     # Concat path.filename with map
     my @candidates_withpath = map { $watch_folder . $_ } @candidates;
@@ -105,15 +104,8 @@ sub read_dx_attin {
     if ( !@candidates ) { print "  No candidate files found\n"; }
 
     return @candidates_withpath;
-}
+}   # End of read_xlstotxt
 
-# TODO read xlsx watch folder an process candidates instead of just read_sheet
-
-my $read_sheet =
-  '/home/user1/dx_xlsx/25-20-3003-AD_from_prodge_all_bad_ending.xlsx';
-
-# call readxlsx sub, xlsx to read is the 1st argument
-readxlsx($read_sheet);
 
 ## READ XLSX sub ##
 # Take filename to read as argument
@@ -140,8 +132,8 @@ sub readxlsx    # read xlsx and create an attin.txt file
         my $attin_file = $xlsxread;    # subsitute extension
         $attin_file =~ s/\.xlsx$/.txt/x;
 
-# $attin_file =~ s/$vcdir/$attidir/; # Substitute valid candidate directory with attin directory where file is to be written
-        print "\nattin file will be called $attin_file\n";
+$attin_file =~ s/$dx_xlsxtotxt/$dx_attin/xsm; # Substitute valid candidate directory with attin directory where file is to be written
+        print "\nattin file will be called $attin_file\n"; 
         open my $FILEOUT, ">", "$attin_file"
           or croak "Cannot open output file $!"
           ; # with append access does not overwrite original.  foreach is OK if file remains open i.e. adds to existing content
@@ -180,13 +172,30 @@ sub readxlsx    # read xlsx and create an attin.txt file
                 else {
                     print
                       "!!! Row does not comply with attout format !!! : @row\n";
+                    # TODO Move .xlsx to failed folder
                 }
             }    # close if ($row > 1...
         }    # close for (my $rowcount...
 
-        print "attin file created\n";
+        print "attin file, $attin_file created\n";
         close($FILEOUT) or carp "Could not close $attin_file";
 
     }    # if -e $xlsxread
 }    # close sub readxlsd
 
+
+### THE PROGRAM ###
+
+#  TODO repalce read_sheet with for each (check if static) xlsx_files (then substitution at 135 will also work for attin path)
+
+my $read_sheet =
+  '/home/user1/dx_xlsx/25-20-3003-AD_from_prodge_all_bad_ending.xlsx';
+
+# read watch folder for xlsx candidates
+ my @xlsx_files = read_xlsxtotxt($dx_xlsxtotxt);
+ print "  Candidate xlsx file(s) found are @xlsx_files\n"; 
+
+# call readxlsx sub, xlsx to read is the 1st argument
+readxlsx($read_sheet);
+
+exit 0;
