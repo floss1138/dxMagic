@@ -3,7 +3,8 @@
 
 use strict;
 use warnings;
-use Carp;
+use File::Copy; # for move
+use Carp; # for croak
 use
   Spreadsheet::Read; # required for xlsx read subroutine but this also requires:
 
@@ -171,8 +172,13 @@ $attin_file =~ s/$dx_xlsxtotxt/$dx_attin/xsm; # Substitute valid candidate direc
                 }    # close if ($firstelement...
                 else {
                     print
-                      "!!! Row does not comply with attout format !!! : @row\n";
-                    # TODO Move .xlsx to failed folder
+                      "!!! Row does not comply with attout format !!! & contains:\n@row\n";
+                     # move failed file to failed folder:
+                     my $xlsx_failed = $dx_fail . basename($xlsxread);
+                     print "Moving $xlsxread to $xlsx_failed ... \n";
+                     move( $xlsxread, $xlsx_failed ) or croak "move to $xlsx_failed failed";
+
+                    
                 }
             }    # close if ($row > 1...
         }    # close for (my $rowcount...
@@ -187,7 +193,7 @@ $attin_file =~ s/$dx_xlsxtotxt/$dx_attin/xsm; # Substitute valid candidate direc
 ### THE PROGRAM ###
 
 #  TODO repalce read_sheet with for each (check if static) xlsx_files (then substitution at 135 will also work for attin path)
-
+# Still using this fixed file for testing !!!
 my $read_sheet =
   '/home/user1/dx_xlsx/25-20-3003-AD_from_prodge_all_bad_ending.xlsx';
 
