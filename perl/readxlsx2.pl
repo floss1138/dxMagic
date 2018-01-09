@@ -4,6 +4,7 @@
 use strict;
 use warnings;
 use File::Copy; # for move
+use File::stat; # for methods size, mtime etc.
 use Carp; # for croak
 use
   Spreadsheet::Read; # required for xlsx read subroutine but this also requires:
@@ -122,9 +123,12 @@ sub readxlsx    # read xlsx and create an attin.txt file
         local $/ = "\r\n"
           ;  # new line defined for windows, might need to be local to read sub?
         my $xlsx = ReadData("$xlsxread");
-        print "Second sheet (attout) cell B3 is:\n";
-        print "$xlsx->[2]{B3} \n"
-          ; #Prints sheet 1, cell A1 usually HANDLE as a ceck but we start at A3. Will warn if cell blank: Use of uninitialized value in print at filename.pl
+        
+        # enable for debug
+        # print "Second sheet (attout) cell B3 is:\n";
+        # print "$xlsx->[2]{B3} \n";
+        # Prints sheet 1, cell A1 usually HANDLE as a ceck but we start at A3. Will warn if cell blank: Use of uninitialized value in print at filename.pl
+        
         my @row = Spreadsheet::Read::row( $xlsx->[1], 2 )
           ; # This returns [sheet], Row - all of it but if there are blanks it is an uninitialized value
         print "Sheet 1, Row 2 contains @row\n";
@@ -134,7 +138,7 @@ sub readxlsx    # read xlsx and create an attin.txt file
         $attin_file =~ s/\.xlsx$/.txt/x;
 
 $attin_file =~ s/$dx_xlsxtotxt/$dx_attin/xsm; # Substitute valid candidate directory with attin directory where file is to be written
-        print "\nattin file will be called $attin_file\n"; 
+        print "\n  attin file will be called $attin_file\n"; 
         open my $FILEOUT, ">", "$attin_file"
           or croak "Cannot open output file $!"
           ; # with append access does not overwrite original.  foreach is OK if file remains open i.e. adds to existing content
@@ -163,12 +167,15 @@ $attin_file =~ s/$dx_xlsxtotxt/$dx_attin/xsm; # Substitute valid candidate direc
                 my $firstelement = $row[1]
                   ; # check second element in array - if its HANDLE or '[any_uppercase_or_numbers x 2] then its a handle value, @row[0] better written $row[0]
                 if ( $firstelement =~ /^HANDLE|^\'[A-Z0-9]{2}/ ) {
-                    print "Row array contains: @row\n"
-                      ; # send this to a file and you have attout, this prints to screen for debug
-                        # Remove the margin i.e. the 1st element of array
+                    # enable for debug to print each row of xlsx:
+                    # print "Row array contains: @row\n";
+
+                    # Remove the margin i.e. the 1st element of array
                     my $margin = shift @row;
                     print $FILEOUT "@row$/"
                       ; # The new line needs to be MS complient hence the $/ defined as \r\n
+                    # clear content of row;
+                    undef @row;
                 }    # close if ($firstelement...
                 else {
                     print
@@ -183,25 +190,100 @@ $attin_file =~ s/$dx_xlsxtotxt/$dx_attin/xsm; # Substitute valid candidate direc
             }    # close if ($row > 1...
         }    # close for (my $rowcount...
 
-        print "attin file, $attin_file created\n";
+        print "  attin file, $attin_file created\n";
         close($FILEOUT) or carp "Could not close $attin_file";
+        
+        # move xlsx file to passed folder
+        
+        my $passed = $dx_pass . basename($xlsxread);
+        print "  moving $xlsxread to $passed\n";
+        
+        move( $xlsxread, $passed ) or croak "move of $xlsxread to $passed failed";
+        
 
     }    # if -e $xlsxread
 }    # close sub readxlsd
 
+## STAT and SEEK sub, create unique string if file is static ##
+# retrun 1 if cannot be read and 2 if not found #
+
+sub statnseek {
+    my ($seekname) = @_;
+    my $bytes = '20';  # constant - number of bytes to read/check at end of file
+
+    my $seek_open_tag =
+      '<cnseek_return>';    # xml style tag for count and seek string
+    my $seek_close_tag = '</cnseek_return>';    # xml close tag
+    my $file_end;    # variable to hold last $bytes of file
+    if ( -f $seekname ) {
+
+        if ( !open my $HANDLE, '<', $seekname ) {
+            print "$seekname cannot be read\n";
+            return 1;
+        }
+        else {
+
+            seek $HANDLE, -$bytes, 2
+              ; # number of bytes needs to be negative -$bytes as seek counts from the end if next argument is 2
+            sysread $HANDLE, $file_end, $bytes;
+            close $HANDLE or carp "Unable to close '$seekname'";
+
+            # read $bytes of file from pointer position
+            # my $bcount = -s $seekname; # now using stat size
+
+            my $stats  = stat $seekname;
+            my $bcount = $stats->size;
+            my $mtime  = $stats->mtime;
+            my $cnseek =
+              $seek_open_tag . $file_end . $bcount . $mtime . $seek_close_tag;
+
+# print "File end text $cnseek\n"; # enable for debug, print stat and seek value
+            return $cnseek;
+
+        }
+
+    }
+
+    else {
+        print "$seekname not found\n ";
+        return 2;
+    }
+
+}    # End of statnseek
 
 ### THE PROGRAM ###
 
-#  TODO repalce read_sheet with for each (check if static) xlsx_files (then substitution at 135 will also work for attin path)
-# Still using this fixed file for testing !!!
-my $read_sheet =
-  '/home/user1/dx_xlsx/25-20-3003-AD_from_prodge_all_bad_ending.xlsx';
+#  TODO close files, clear arrays and add run forever loop, tidy and rename to dx_xlsx2txt, rename $row to $rowcount
 
 # read watch folder for xlsx candidates
  my @xlsx_files = read_xlsxtotxt($dx_xlsxtotxt);
- print "  Candidate xlsx file(s) found are @xlsx_files\n"; 
+ if (@xlsx_files) 
+    {
+    print "  Candidate xlsx file(s) found are @xlsx_files\n"; 
+    }
 
-# call readxlsx sub, xlsx to read is the 1st argument
-readxlsx($read_sheet);
+foreach (@xlsx_files) {
+
+        my $dx = $_;
+        print "  Checking $dx is static ...";
+        my $stat1 = statnseek($dx);
+        sleep 1;
+        my $stat2 = statnseek($dx);
+
+        # If file is static stat check will be the same string
+        if ( $stat1 eq $stat2 ) {
+            print "  OK\n";
+
+            # If static, open file and check 1st line is acceptabale format
+            if ( !open my $XFILE, '<', $dx ) {
+                print "\n  failed to open $dx\n";
+            }
+            else {
+                 readxlsx($dx);
+                 }
+        } # end of if stat1 eq stat2
+} # end of foreach @xlsx_files
+undef @xlsx_files; 
+
 
 exit 0;
