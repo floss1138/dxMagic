@@ -15,12 +15,12 @@ use File::Path 'rmtree';    # Exported by default
 use Data::Dumper;
 use Excel::Writer::XLSX;
 
-our $VERSION = '0.0.18';    # version of this script
+our $VERSION = '0.0.19';    # version of this script
 
 ##  Custom variables go here ##
 
 # dx extract folder [files for parsing]
-my $dx_extract = '/home/user1/dx_extract_watch/';
+my $dx_extract = '/home/user1/dx_extract_WATCH/';
 
 # dx pass folder [processed files]
 my $dx_pass = '/home/user1/dx_pass/';
