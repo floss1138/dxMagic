@@ -8,7 +8,7 @@ Please excuse the alternative spellings; they are intended to prevent search eng
 
 ## USING dx_extract
 dxMagic is watch folder based.  dx_extract.pl will create the necessary folder structure when run (if not already present).  Edit the header of the script as necessary to create the desired folders.  The defaults begin with *dx_* to show they belong to dxMagic and end in *_watch* if this is a trigger folder. Defaults are:
-dx_extract_watch folder is for the dxx or dxf files to be parsed.
+dx_extract_WATCH folder is for the dxx or dxf files to be parsed.
 dx_pass is where successfully processed files are moved to.
 dx_fail is for files which failed (valid file name but invalid content).
 dx_attout is the resulting attout.txt files, keeping the same name but with a new extension.
@@ -20,15 +20,16 @@ The dx_extract_watch folder contains a readme with more information.  Files with
 dx_insert takes an attout.txt formatted file (from AutoKADs attout/export attributes or dx_extract) and merges this data back into a dxf file of the same name (and the same meta-data of course)
 The default folders begin with *dx_* to show they belong to dx_magic   
 dx_attin_WATCH is for the attribute.txt file.  Must have the same name as the dxf other than the extension.   
-dx_dxf_WATCH is for the .dxf file intended for attribute replacement.     
+dx_dxf4insert is for the .dxf file intended for attribute replacement.     
 During attribute replacement a temporary file will be created in dx_dxf_WATCH with a .tmp extension.  The updated file will replace the original .dxf.
 The attribute .txt file will be moved to the pass folder on successful completion; however, the .dxf will remain in dx_dxf_WATCH pending further updates.   
 
-## USING dx_totxt (coming soon)
-dx_totxt takes the xlsx file created with dx_extract and converts it to attout.txt format.  This in turn can be inserted with dx_insert or imported with AutoKADs ATTIN command.   
-dx_xlsx_WATCH is for the .xlsx files produced by dx_extract. File must have an .xlsx extension.  
+## USING dx_xls2txt
+dx_xlsx2txt takes xlsx files created with dx_extract and converts these to attout.txt format.  This in turn can be inserted with dx_insert or imported with AutoKADs ATTIN command.   
+dx_xlsx2txt_WATCH is for the .xlsx files produced by dx_extract. File must have an .xlsx extension.  
 dx_attin is the destination for the converted file.  attin/attout files should always have .txt extensions and Windows format new lines.   
-The .xlsx file produced by dx_extract has the first 2 rows and the first column as margin space.  These must remain but must can be used for comments (these cells are not parsed).   
+The .xlsx file produced by dx_extract has the first 2 rows and the first column as margin space.  These must remain & can be used for comments. 
+In the future, the left most column might be used to flag a row for further processing if it contains the relevant command.   
 
 ### Installing dxMagic
 dxMagic is just a Perl script.  Excel creation requires Excel::Writer::XLSX module to be installed.  If you need to run this on Windows, install Strawberry Perl, user cpan to install cpanm,`cpan App::cpanminus`,  then install the module `cpanm Excel::Writer::XLSX`.  Edit the script header to create the necessary folders (with appropriate slash separators for your OS).
