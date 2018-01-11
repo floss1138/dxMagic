@@ -32,7 +32,9 @@ The .xlsx file produced by dx_extract has the first 2 rows and the first column 
 In the future, the left most column might be used to flag a row for further processing if it contains the relevant command.   
 
 ### Installing dxMagic
-dxMagic is just a Perl script.  Excel creation requires Excel::Writer::XLSX module to be installed.  Spreadsheet::Read is required for xlsx read subroutine but this also requires XLSX, Spreadsheet::ParseXLSX, once installed you have 'xlscat' at command line which is handy for teseting.  For Windows, install Strawberry Perl, use cpan to install cpanm,`cpan App::cpanminus`,  then install the modules with the cpan command, for example `cpanm Excel::Writer::XLSX`.  Edit the script header to create the necessary folders (with appropriate slash separators for your OS).
+dxMagic is just a collection of Perl scripts.  Excel creation requires Excel::Writer::XLSX module to be installed.  Spreadsheet::Read is required for the xlsx read subroutine. This also requires XLSX, Spreadsheet::ParseXLSX, once installed you have `xlscat` at command line which is handy for teseting. 
+`xlscat -i` is particularly handy to show a summary of sheet names and size only. 
+For Windows, install Strawberry Perl; use cpan to install cpanm,`cpan App::cpanminus`,  then install the modules with the cpanm command, for example `cpanm Excel::Writer::XLSX`.  Edit the script headers to create the necessary folders (with appropriate slash separators for your OS).
 
 ## A note on file formats ##
 .dwg AutoKAD proprietary drawing format    
