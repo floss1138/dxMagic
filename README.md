@@ -1,13 +1,16 @@
 # dxMagic
 Proof of concept DXF and DXX file parser to extract attribute meta-data
 
-dxMagic is a proof of concept attempt to take dxx output from AutoKAD LT/ProgKAD and turn it into an ATTOUT formatted text file.  This provides similar results to the ATTOUT function available in the full version of AutoKAD but using the `ATTEXT` function instead of `ATTOUT`.  With little modification it is possible to extend dxx parsing to ASCII dxf files.  This makes it possible to extract attribute data directly from the drawing file without the need to open it in a CAD package.   
+dxMagic is a proof of concept attempt to take dxx output from AutoKAD LT/ProgKAD and turn it into an ATTOUT formatted text file.  This provides similar results to the ATTOUT function available in the full version of AutoKAD but using the `ATTEXT` function instead of `ATTOUT`.  With little modification it is possible to extend dxx parsing to entier ASCII dxf files.  In the case of a dxf file, all the attribute data from both model and paper space is extracted.  dx_extract makes it possible to extract attribute data directly from the drawing file without the need to open it in a CAD package.  `ATTIN` functionality is similary provided by merging attribute data back into the .dxf using dx_insert.
 
 ### Looking for a CAD tutorial?
 Please excuse the alternative spellings; they are intended to prevent search engines picking up this document. Some AutoKAD commands will be explained but this is not a CAD tutorial. There are lots of good tutorials for AutoKAD. This is not one of them.
 
+## USIN dxMagic
+dxMagic is watch folder based.  Folder names can be changed in the header of the scripts. Default names begin with *dx_* to show they belong to dxMagic and end in *_watch* if this is a trigger folder.  Placing a file in the watch folder will initiate file processing.  A dxf formatted file also needs to be present as the dx_insert target.  In addition to the attout formatted text file an xlsx spread sheet is also provided.  This can be edited and converted to and attin/attout formatted text file with dx_xls2txt 
+
 ## USING dx_extract
-dxMagic is watch folder based.  dx_extract.pl will create the necessary folder structure when run (if not already present).  Edit the header of the script as necessary to create the desired folders.  The defaults begin with *dx_* to show they belong to dxMagic and end in *_watch* if this is a trigger folder. Defaults are:
+dx_extract.pl will create the necessary folder structure when run (if not already present).
 dx_extract_WATCH folder is for the dxx or dxf files to be parsed.
 dx_pass is where successfully processed files are moved to.
 dx_fail is for files which failed (valid file name but invalid content).
@@ -19,7 +22,7 @@ The dx_extract_watch folder contains a readme with more information.  Files with
 ## USING dx_insert
 dx_insert takes an attout.txt formatted file (from AutoKADs attout/export attributes or dx_extract) and merges this data back into a dxf file of the same name (and the same meta-data of course)
 The default folders begin with *dx_* to show they belong to dx_magic   
-dx_attin_WATCH is for the attribute.txt file.  Must have the same name as the dxf other than the extension.   
+dx_insert_WATCH is for the attribute.txt file.  Must have the same name as the dxf other than the extension.   
 dx_dxf4insert is for the .dxf file intended for attribute replacement.     
 During attribute replacement a temporary file will be created in dx_dxf_WATCH with a .tmp extension.  The updated file will replace the original .dxf.
 The attribute .txt file will be moved to the pass folder on successful completion; however, the .dxf will remain in dx_dxf_WATCH pending further updates.   
