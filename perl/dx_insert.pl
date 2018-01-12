@@ -31,8 +31,8 @@ my $dx_pass = '/home/user1/dx_pass/';
 # dx fail folder [files that did not look like a dx file]
 my $dx_fail = '/home/user1/dx_fail/';
 
-# dx attin folder [dx attout format metadata in either .txt or xlsx format to be replaced in corresponding dxf file]
-my $dx_attin = '/home/user1/dx_attin_WATCH/';
+# dx attin folder [dx attout format metadata in either .txt to be replaced in corresponding dxf file]
+my $dx_attin = '/home/user1/dx_insert_WATCH/';
 
 # Program variables go here:
 
@@ -64,10 +64,12 @@ else {
 
     my $read_me = << "NOTE";
 
-      ## dxMagic $VERSION attribute attin watch folder ##   
+      ## dxMagic insert, $VERSION attribute attin watch folder ##   
 
-dxMagic insert takes attribute data from attribute.txt or attribute.xlsx formatted files,
-then inserts this back into the originating .dxf file; similar to using ACADs ATTIN tool.
+This folder is for attin/attout formatted files.  These must have a .txt extension.
+dxMagic insert, takes attribute data from attin/attout formatted .txt files and
+inserts this back into the originating .dxf file; similar to using ACADs ATTIN tool.
+File base names must match.  Source files are .txt, target merge files are .dxf
 
 *** Ensure that a matching .dxf is already in $dx_insert before presenting the attribute file *** 
 
@@ -95,7 +97,7 @@ sub read_dx_attin {
 
     # print "  reading watchfolder $watch_folder\n";
     #  Define matching regex for dx files here
-    my $match = '.*(\.txt|\.xlsx)';
+    my $match = '.*(\.txt$)';
 
     opendir( DIR, $watch_folder )
       || croak "can't opendir $watch_folder - program will terminate";
@@ -107,7 +109,7 @@ sub read_dx_attin {
     my $index = 0;
     $index++, until $candidates[$index] eq 'readme.txt';
 
- # splice is used a delete is deprecated.  1 is a single item at the index point
+ # splice is used as delete is deprecated.  1 is a single item at the index point
     splice( @candidates, $index, 1 );
 
     # Concat path.filename with map
@@ -351,15 +353,21 @@ sub xinparser {
   # if $tagvalue ne $tagvalue_in_dxf then replace the tagvalue and write to file
                 if ( $tagvalue ne $tagvalue_in_hofb ) {
                     print
-"  *** dxf needs $tagvalue updating with $tagvalue_in_hofb ***\n";
+"  *** dxf needs >$tagvalue< updating with >$tagvalue_in_hofb< ***\n";
+# replace tagvalue here for debug: my $tagvalue ='USB 2'; if ($attrib_cache =~ m/\Q$tagvalue/xsmg) { print "  $tagvalue matched in attribute group\n"; exit 3;}
 
 # tagvalue follows a double space 1 on the previous line to prevent a random match
+#\Q quotmetadata modifier required in case there are meta characters and spaces in the $sourcestring; spaces need delimiting for this to work.  There will be spaces.
+#\Q on the replacing string would result in spaces becoming '\ ' delimited spaces
+#\E not needed in this case to end the modificaiton
+
+# also using m to match mutiline, x if we free format spacing, s dot matches line breaks
 # replace value in cache
                     $attrib_cache =~
-                      s/^[ ]{2}1\r\n$tagvalue/  1\r\n$tagvalue_in_hofb/xsm;
+                      s/^[ ]{2}1\r\n\Q$tagvalue/  1\r\n$tagvalue_in_hofb/xsmg;
 
-                    # show attribute cahce for debug
-                    # print "\n Attribute cache:\n$attrib_cache\n";
+                    # show attribute cahce for debug and bail out:
+                    # print "\n Attribute cache is now:\n$attrib_cache\n"; exit 4;
 
                     # output repalced cache content to file
                     print $DXFTEMP "$attrib_cache";
@@ -405,7 +413,7 @@ sub xinparser {
     move( $att_src, $passed ) or croak "move of $att_src failed";
     print "Data merge complete, moving $temp_dxf to $dxf_file \n";
     close $DXFFILE or croak " close of $dxf_file failed";
-    close $DXFTEMP or croak " close of $temp_dxf failed";
+    close $DXFTEMP or croak " close of $temp_dxf failed"; 
     move( $temp_dxf, $dxf_file ) or croak "move of $temp_dxf failed";
 
     # replacement now complete, return replaced count
@@ -582,4 +590,5 @@ exit 0;
 
 __END__
 
-
+# TODO Move any invalid files from the watch folder to failed?  Or is it more obvious for the user to leave them in the watch folder?
+# Write a results file in the dxf4insert folder, appended with date stamp  
