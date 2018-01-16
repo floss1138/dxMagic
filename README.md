@@ -6,36 +6,37 @@ dxMagic is a proof of concept attempt to take dxx output from AutoKAD LT/ProgKAD
 ### Looking for a CAD tutorial?
 Please excuse the alternative spellings; they are intended to prevent search engines picking up this document. Some AutoKAD commands will be explained but this is not a CAD tutorial. There are lots of good tutorials for AutoKAD. This is not one of them.
 
-## USIN dxMagic
-dxMagic is watch folder based.  Folder names can be changed in the header of the scripts. Default names begin with *dx_* to show they belong to dxMagic and end in *_watch* if this is a trigger folder.  Placing a file in the watch folder will initiate file processing.  A dxf formatted file also needs to be present as the dx_insert target.  In addition to the attout formatted text file an xlsx spread sheet is also provided.  This can be edited and converted to and attin/attout formatted text file with dx_xls2txt 
+## USING dxMagic
+dxMagic is watch folder based.  Folder names can be changed in the header of the scripts. Default names begin with *dx_* to show they belong to dxMagic and end in *_WATCH* if this is a trigger folder.  Placing a file in the watch folder will initiate file processing.  A dxf formatted file also needs to be present as the dx_insert target.  In addition to the attout formatted text file an xlsx spread sheet is also provided.  This can be edited and converted to and attin/attout formatted text file with dx_xls2txt.  An optional build script will create an example directory structure, making this available as SAMBA shares.  
 
 ## USING dx_extract
-dx_extract.pl will create the necessary folder structure when run (if not already present).
-dx_extract_WATCH folder is for the dxx or dxf files to be parsed.
-dx_pass is where successfully processed files are moved to.
-dx_fail is for files which failed (valid file name but invalid content).
-dx_attout is the resulting attout.txt files, keeping the same name but with a new extension.
-dx_xlsx is the resulting attout.txt file converted to .xlsx format.
+`dx_extract.pl` will create the necessary folder structure when run (if not already present).
+**dx_extract_WATCH** folder is for the dxx or dxf files to be parsed.  
+**dx_pass** is where successfully processed files are moved to.  
+**dx_fail** is for files which failed (valid file name but invalid content).  
+**dx_attout** is the resulting attout.txt files, keeping the same name but with a new extension.  
+**dx_xlsx** is the resulting attout.txt file converted to .xlsx format.  
 
-The dx_extract_watch folder contains a readme with more information.  Files without the extension .dxx and .dxf (lower case) will not be processed.
+The dx_extract_WATCH folder contains a readme with more information.  Files without the extension .dxx and .dxf (lower case) will not be processed.
 
 ## USING dx_insert
-dx_insert takes an attout.txt formatted file (from AutoKADs attout/export attributes or dx_extract) and merges this data back into a dxf file of the same name (and the same meta-data of course)
+`dx_insert` takes an attout.txt formatted file (from AutoKADs attout/export attributes or dx_extract) and merges this data back into a dxf file of the same name (and the same meta-data of course)
 The default folders begin with *dx_* to show they belong to dx_magic   
-dx_insert_WATCH is for the attribute.txt file.  Must have the same name as the dxf other than the extension.   
-dx_dxf4insert is for the .dxf file intended for attribute replacement.     
+**dx_insert_WATCH** is for the attribute.txt file.  Must have the same name as the dxf other than the extension.   
+**dx_dxf4insert** is for the .dxf file intended for attribute replacement.     
 During attribute replacement a temporary file will be created in dx_dxf_WATCH with a .tmp extension.  The updated file will replace the original .dxf.
 The attribute .txt file will be moved to the pass folder on successful completion; however, the .dxf will remain in dx_dxf_WATCH pending further updates.   
 
 ## USING dx_xls2txt
-dx_xlsx2txt takes xlsx files created with dx_extract and converts these to attout.txt format.  This in turn can be inserted with dx_insert or imported with AutoKADs ATTIN command.   
-dx_xlsx2txt_WATCH is for the .xlsx files produced by dx_extract. File must have an .xlsx extension.  
-dx_attin is the destination for the converted file.  attin/attout files should always have .txt extensions and Windows format new lines.   
+`dx_xlsx2txt` takes xlsx files created with dx_extract and converts these to attout.txt format.  This in turn can be inserted with dx_insert or imported with AutoKADs ATTIN command.   
+**dx_xlsx2txt_WATCH** is for the .xlsx files produced by dx_extract. File must have an .xlsx extension.  
+**dx_attin** is the destination for the converted file.   
+attin/attout files should always have .txt extensions and Windows format new lines.   
 The .xlsx file produced by dx_extract has the first 2 rows and the first column as margin space.  These must remain & can be used for comments. 
 In the future, the left most column might be used to flag a row for further processing if it contains the relevant command.   
 
 ### Installing dxMagic
-dxMagic is just a collection of Perl scripts.  Excel creation requires Excel::Writer::XLSX module to be installed.  Spreadsheet::Read is required for the xlsx read subroutine. This also requires XLSX, Spreadsheet::ParseXLSX, once installed you have `xlscat` at command line which is handy for teseting. 
+dxMagic is just a collection of Perl scripts.  Excel creation requires the *Excel::Writer::XLSX* module to be installed.  *Spreadsheet::Read* is required for the xlsx read subroutine. This also requires  *Spreadsheet::ParseXLSX*. Once Spreadsheet read isinstalled,`xlscat` command is available and very handy for teseting. 
 `xlscat -i` is particularly handy to show a summary of sheet names and size only. 
 For Windows, install Strawberry Perl; use cpan to install cpanm,`cpan App::cpanminus`,  then install the modules with the cpanm command, for example `cpanm Excel::Writer::XLSX`.  Edit the script headers to create the necessary folders (with appropriate slash separators for your OS).
 
