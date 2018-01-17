@@ -11,17 +11,16 @@ dxMagic is watch folder based.  Folder names can be changed in the header of the
 
 ## USING dx_extract
 `dx_extract.pl` will create the necessary folder structure when run (if not already present).
-**dx_extract_WATCH** folder is for the dxx or dxf files to be parsed.  
+
+**dx_extract_WATCH** folder is for the dxx or dxf files to be parsed & has a readme for more info.   .  
 **dx_pass** is where successfully processed files are moved to.  
 **dx_fail** is for files which failed (valid file name but invalid content).  
 **dx_attout** is the resulting attout.txt files, keeping the same name but with a new extension.  
 **dx_xlsx** is the resulting attout.txt file converted to .xlsx format.  
-
-The dx_extract_WATCH folder contains a readme with more information.  Files without the extension .dxx and .dxf (lower case) will not be processed.
+Files without the extension .dxx and .dxf (lower case) will not be processed.
 
 ## USING dx_insert
-`dx_insert` takes an attout.txt formatted file (from AutoKADs attout/export attributes or dx_extract) and merges this data back into a dxf file of the same name (and the same meta-data of course)
-The default folders begin with *dx_* to show they belong to dx_magic   
+`dx_insert` takes an attout.txt formatted file (from AutoKADs attout/export attributes or dx_extract) and merges this data back into a dxf file of the same name (and the same meta-data of course)   
 **dx_insert_WATCH** is for the attribute.txt file.  Must have the same name as the dxf other than the extension.   
 **dx_dxf4insert** is for the .dxf file intended for attribute replacement.     
 During attribute replacement a temporary file will be created in dx_dxf_WATCH with a .tmp extension.  The updated file will replace the original .dxf.
@@ -38,7 +37,10 @@ In the future, the left most column might be used to flag a row for further proc
 ### Installing dxMagic
 dxMagic is just a collection of Perl scripts.  Excel creation requires the *Excel::Writer::XLSX* module to be installed.  *Spreadsheet::Read* is required for the xlsx read subroutine. This also requires  *Spreadsheet::ParseXLSX*. Once Spreadsheet read isinstalled,`xlscat` command is available and very handy for teseting. 
 `xlscat -i` is particularly handy to show a summary of sheet names and size only. 
-For Windows, install Strawberry Perl; use cpan to install cpanm,`cpan App::cpanminus`,  then install the modules with the cpanm command, for example `cpanm Excel::Writer::XLSX`.  Edit the script headers to create the necessary folders (with appropriate slash separators for your OS).
+For Windows, install Strawberry Perl; use cpan to install cpanm,`cpan App::cpanminus`,  then install the modules with the cpanm command, for example `cpanm Excel::Writer::XLSX`.  Edit the script headers to create the necessary folders (with appropriate slash separators for your OS).  dxMagicbuilder is an install script to setup a test environment with SAMBA shares.
+dxMagicbuilder is a hacked version of the dbdotcad build script.  Its a mess.
+For testing via an ssh session try using screen.  `screen`, `ctrl a + c` creates a new screen, `ctrl a + d detaches the screen session leaving the processes running. 
+`ctrl a + n` for next screen, `ctrl a + p` for previous screen.  `screen -ls` to list screen sessions, reconnect with `screen -r <screen-shown-via-ls>`  
 
 ## A note on file formats ##
 .dwg AutoKAD proprietary drawing format    
