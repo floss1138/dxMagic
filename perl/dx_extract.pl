@@ -15,24 +15,29 @@ use File::Path 'rmtree';    # Exported by default
 use Data::Dumper;
 use Excel::Writer::XLSX;
 
-our $VERSION = '0.0.19';    # version of this script
+our $VERSION = '0.0.20';    # version of this script
 
 ##  Custom variables go here ##
 
+# path to dxMagic folders:
+my $path ='/home/alice/MyCAD/dxMagic';
+# Directories will be owned by the user running this script
+# chown may be necessary
+
 # dx extract folder [files for parsing]
-my $dx_extract = '/home/user1/dx_extract_WATCH/';
+my $dx_extract = "$path/dx_extract_WATCH/";
 
 # dx pass folder [processed files]
-my $dx_pass = '/home/user1/dx_pass/';
+my $dx_pass = "$path/dx_pass/";
 
 # dx fail folder [files that did not look like a dx file]
-my $dx_fail = '/home/user1/dx_fail/';
+my $dx_fail = "$path/dx_fail/";
 
 # dx attout folder [dx files conveted to attout format
-my $dx_attout = '/home/user1/dx_attout/';
+my $dx_attout = "$path/dx_attout/";
 
 # dx Excel folder [Excel, .xlxs format version of the attout file]
-my $dx_xlsx = '/home/user1/dx_xlsx/';
+my $dx_xlsx = "$path/dx_xlsx/";
 
 # Program variables go here:
 
@@ -128,7 +133,7 @@ sub read_dx_extract {
     # foreach (@candidates) {
     #  print "  Candidate file name:>$_< found with grep $watch_folder$match\n";
     #  }
-    if ( !@candidates ) { print "  No candidate files found\n"; }
+    if ( !@candidates ) { print "  No dx_extract candidate files found\n"; }
     $dx_state = 3;
     return @candidates_withpath;
 }
@@ -573,6 +578,8 @@ sub attout {
 #  print "\n Attout filename will be, $attout_nameandpath,\n tags values are @$elements\n";
     open( my $ATTOUT, '>>', $attout_nameandpath )
       or croak "$attout_nameandpath would not open";
+# TODO If attout cannot be written should the source file be failed?
+# Currently if parsing is successful it moves to dx_pass
 
     # elements need to be tab deliminated
     print $ATTOUT join( "\t", @$elements ), "\r\n";
@@ -710,7 +717,7 @@ while ( sleep 1 ) {
 
     }    # end of foreach dx_file
 
-    print " \nEnd of processing, lets check the watchfolders again...\n";
+    print "  End of processing, lets check the extract watchfolder again...\n";
 
     # set dx_state to invalid until more files found
     $dx_state = 4;
