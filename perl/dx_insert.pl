@@ -18,21 +18,26 @@ use File::Copy;
 use File::Path 'rmtree';    # Exported by default
 use Data::Dumper;
 
-our $VERSION = '0.0.05';    # version of this script
+our $VERSION = '0.0.06';    # version of this script
 
 ##  Custom variables go here ##
 
+# path to dxMagic folders:
+my $path ='/home/alice/MyCAD/dxMagic';
+# Directories will be owned by the user running this script
+# chown may be necessary
+
 # dx insert folder [files for parsing]
-my $dx_insert = '/home/user1/dx_dxf4insert/';
+my $dx_insert = "$path/dx_dxf4insert/";
 
 # dx pass folder [processed files]
-my $dx_pass = '/home/user1/dx_pass/';
+my $dx_pass = "$path/dx_pass/";
 
 # dx fail folder [files that did not look like a dx file]
-my $dx_fail = '/home/user1/dx_fail/';
+my $dx_fail = "$path/dx_fail/";
 
 # dx attin folder [dx attout format metadata in either .txt to be replaced in corresponding dxf file]
-my $dx_attin = '/home/user1/dx_insert_WATCH/';
+my $dx_attin = "$path/dx_insert_WATCH/";
 
 # Program variables go here:
 
@@ -118,7 +123,7 @@ sub read_dx_attin {
     # foreach (@candidates) {
     #  print "  Candidate file name:>$_< found with grep $watch_folder$match\n";
     #  }
-    if ( !@candidates ) { print "  No candidate files found\n"; }
+    if ( !@candidates ) { print "  No candidate insert files found\n"; }
 
     return @candidates_withpath;
 }
