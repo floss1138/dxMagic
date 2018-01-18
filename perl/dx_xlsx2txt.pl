@@ -18,22 +18,27 @@ use English qw(-no_match_vars);
  no warnings "uninitialized"
   ;    # prevents uninitialized warnings from ParseXLSX for blank cells in xlsx
 
-our $VERSION = '0.0.03';
+our $VERSION = '0.0.04';
 
 ##  Custom variables go here ##
 
+# path to dxMagic folders:
+my $path ='/home/alice/MyCAD/dxMagic';
+# Directories will be owned by the user running this script
+# chown may be necessary
+
 # dx insert folder [files for parsing]
-my $dx_xlsxtotxt = '/home/user1/dx_xlsx2txt_WATCH/';
+my $dx_xlsxtotxt = "$path/dx_xlsx2txt_WATCH/";
 
 # dx pass folder [processed xlsx files]
-my $dx_pass = '/home/user1/dx_pass/';
+my $dx_pass = "$path/dx_pass/";
 
 # dx fail folder [xlsx files that did not look like a dx, xlsx file]
-my $dx_fail = '/home/user1/dx_fail/';
+my $dx_fail = "$path/dx_fail/";
 
 # dx attin folder [processed xlsx converted to attin/attout files;
 # these would typically be imported with the ATTIN command]
-my $dx_attin = '/home/user1/dx_attin/';
+my $dx_attin = "$path/dx_attin/";
 
 my @folders = ( $dx_pass, $dx_fail, $dx_attin, $dx_xlsxtotxt );
 
@@ -291,6 +296,6 @@ while ( sleep 1 ) {
         }    # end of if stat1 eq stat2
     }    # end of foreach @xlsx_files
     undef @xlsx_files;
-    print "  End of processing, looking for more files ...\n";
+    print "  End of processing, looking for more xlsx files ...\n";
 }    # end of while (sleep)
 exit 0;
