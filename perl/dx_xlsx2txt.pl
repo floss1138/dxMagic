@@ -54,7 +54,8 @@ foreach (@folders) {
 }
 
 # Add readme.txt to dx_xlsxtotxt watch folder
-my $readme = $dx_xlsxtotxt . 'readme.txt';
+
+my $readme = $dx_xlsxtotxt . 'README.TXT';
 if ( !open my $README, '>', $readme ) {
     print "\n  failed to open $readme\n";
 }
@@ -62,7 +63,7 @@ else {
 
     my $read_me = << "NOTE";
 
-      ## dxMagic xlsx to txt $VERSION watch folder ##   
+      ## dxMagic xlsx to txt $VERSION watch folder ##\r\n  
 
 dxMagic xlsx to txt takes dxMagic extracted xlsx then creates a tab deliminated attout.txt file, 
 matching the format of ACADs ATTOUT tool.
@@ -72,15 +73,22 @@ These are written to $dx_attin, with the same file name but given a new .txt ext
 attout.txt files can be imported back into the originating drawing with the ATTIN command.
 The source file is then moved to $dx_pass or $dx_fail folder as appropriate.
 
-Files without xlsx extensions will be ignored.
+Files without xlsx extensions will be ignored.  This is a WATCH folder so the xlsx file need be complete when dropped.
+Do not try saving the xlsx from within a spread sheet package,
+to a WATCH folder as it will still be open in the editing application.
 
 ATTIN is part of the Express Tools found in Full ACAD (or via the menu, Express > Blocks > Import Attribute Information).
 
+
       ## If you are irritated by every rub, how will you be polished? - Rumi ##
 NOTE
+
+    $read_me =~ s/\n/\r\n/gxsm;
     print $README "$read_me";
     close $README or carp "  could not close $read_me";
 }
+# set record sep back to undefined (only applies to print so cannot send heredoc to file handle)
+undef $ORS;
 
 ## Sub to read xlsxtotxt watch folder ##
 
