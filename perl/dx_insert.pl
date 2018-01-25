@@ -61,7 +61,7 @@ foreach (@folders) {
 
 # Add readme.txt to dx_extract watch folder
 
-my $readme = $dx_attin . 'readme.txt';
+my $readme = $dx_attin . 'README.TXT';
 if ( !open my $README, '>', $readme ) {
     print "\n  failed to open $readme\n";
 }
@@ -87,8 +87,10 @@ Files without txt and xlsx extensions will be ignored (including this readme.txt
 
 ATTIN is part of the Express Tools found in Full ACAD (or via the menu, Express > Blocks > Import Attribute Information).
 
+
       ## Stop acting so small.  What you seek is seeking you - Rumi ##
 NOTE
+    $read_me =~ s/\n/\r\n/gxsm;
     print $README "$read_me";
     close $README or carp " Cannot close $read_me";
 }
@@ -111,11 +113,11 @@ sub read_dx_attin {
       grep { !/^\./xms && -f "$watch_folder/$_" && (/$match/xsm) } readdir(DIR);
 
     # ignore readme.txt by removing if from the candidate array if found
-    my $index = 0;
-    $index++, until $candidates[$index] eq 'readme.txt';
-
- # splice is used as delete is deprecated.  1 is a single item at the index point
-    splice( @candidates, $index, 1 );
+    # my $index = 0;
+    # $index++, until $candidates[$index] eq 'readme.txt';
+    # this was no longer required if change name to upper case README.TXT 
+    # splice is used as delete is deprecated.  1 is a single item at the index point
+    # splice( @candidates, $index, 1 );
 
     # Concat path.filename with map
     my @candidates_withpath = map { $watch_folder . $_ } @candidates;
