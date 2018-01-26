@@ -82,7 +82,7 @@ foreach (@folders) {
     else       { print " - OK\n"; }
 }
     # Add readme.txt to dx_extract watch folder
-    my $readme = $dx_extract . 'readme.txt';
+    my $readme = $dx_extract . 'README.TXT';
     if ( !open my $README, '>', $readme ) {
         print "\n  failed to open $readme\n";
     }
@@ -104,8 +104,10 @@ Files without dxx and dxf extensions will be ignored (including this one).
 
 ATTIN is part of the Express Tools found in Full ACAD (or via the menu, Express > Blocks > Import Attribute Information).
 
-      ## If you are irritated by every rub, how will you be polished? - Rumi ##
+
+      ## Beauty surrounds us, but usually we need to be walking in a garden to know it - Rumi ##
 NOTE
+        $read_me =~ s/\n/\r\n/gxms;
         print $README "$read_me";
         close $README or carp "  could not close $read_me";
     }
