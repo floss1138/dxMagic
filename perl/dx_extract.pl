@@ -15,7 +15,7 @@ use File::Path 'rmtree';    # Exported by default
 use Data::Dumper;
 use Excel::Writer::XLSX;
 
-our $VERSION = '0.0.20';    # version of this script
+our $VERSION = '0.0.21';    # version of this script
 
 ##  Custom variables go here ##
 
@@ -442,12 +442,12 @@ sub xparser {
 # Take attout filename with and excel file path as arguments
 sub excelout {
 
-    # 52 columns (AZ) was not enough ...
-    # This becomes A to AZ, created range in an @alph
+    # A to IZ, created range in an @alph for 260 columns - if thats not enough, increase the range here and the cell width if required
     my ( $attout, $excelpath ) = @_;
 
     # print "  File name to base xlsx on is $attout\n";
-    my @alph = ( 'A' .. 'Z', 'AA' .. 'AZ', 'BA' .. 'BZ' );
+    my @alph = ( 'A' .. 'Z', 'AA' .. 'AZ', 'BA' .. 'BZ', 'CA' .. 'CZ', 'DA' .. 'DZ', 'EA' .. 'EZ',  'FA' .. 'FZ', 'GA' .. 'GZ', 'HA' .. 'HZ', 'IA' .. 'IZ' );
+    my $alph_len = @alph;
 
     # $row is the first row number for attribute data
     my $row = '3';
@@ -518,7 +518,7 @@ sub excelout {
     $worksheet_attout->set_row( 2, undef, $format );
 
     #  Set column width for attout sheet
-    $worksheet_attout->set_column( 'B:AZ', 14 );
+    $worksheet_attout->set_column( 'B:IZ', 14 );
 
     #  Freeze heading row
     $worksheet_attout->freeze_panes( 3, 0 );
@@ -545,12 +545,13 @@ sub excelout {
 
 #        print "  Valid attout found, writing headings to $alph[$alph_offset]$row\n";
             foreach (@split_line) {
-                $worksheet_attout->write( "$alph[$alph_offset]$row", $_ );
+                # prevent writing to an undefined cell by checking the @alph range previously allowed
+                if ($alph_offset < $alph_len) {$worksheet_attout->write( "$alph[$alph_offset]$row", $_ );}
 
                 # move to next column
                 # print "  line is: $_, alph_offset is $alph_offset\n";
                 $alph_offset++;
-
+                if ($alph_offset > $alph_len) {print "  Expected column limit $alph_len exceeded, now $alph_offset, some columns will be missing!\n";} 
             }
 
 # foreach appears to ignore empty elements at end of array - makes not odds here as cell is still empty either way
