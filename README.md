@@ -76,5 +76,7 @@ Auto & Prog will save DWG to DXF but it is best practice to use the `AUDIT` comm
 
 Auto/ProgKAD has two different view modes.  MODEL space is where the design work is actually done and has defined units of measure to a defined resolution.  A viewport is created into the MODEL space, usually scaled to fit a given paper size.  Typically a drawing boarder is placed within the PAPER space so the viewport shows the desired area of the model scaled within the boarder.  The boarder can contain blocks and will usually contain attribute data to show the document title, versions & revisions.  The `ATTEXT` function can only select and create a dxx export from the drawing space visible at the time.  The dxf file is for a whole drawing, so parsing this file will result in all the meta-data from both MODEL and PAPER space being extracted. 
 
-To display the block handle value from the drawing use the command `BLOCK?` (assuming you have Express Tools available) or using Lisp `(entget (car (entsel)))`
+To display the block handle value from the drawing use the command `BLOCK?` (assuming you have Express Tools available) or using Lisp `(entget (car (entsel)))`   
+To zoom to a block by handle value, `_ZOOM`, Select the Object option. When prompted to Select Objects, enter `(HANDENT "HandleID")`, press ENTER to Zoom to this object.  In practice this reduces to somthing like: `Z ENTER o ENTER (HANDENT"ABCD") ENTER ENTER`.  An object can be selecte in a similar way with the `_SELECT` command.
+
 
