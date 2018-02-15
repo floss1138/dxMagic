@@ -17,7 +17,7 @@ use IPC::Open2;
 # useful, but without any warranty; without even the implied
 # warranty of merchantability or fitness for a particular purpose.
 
-our $VERSION = '0.0.51';
+our $VERSION = '0.0.52';
 
 # SERVER BUILD SCRIPT FOR dbDotCad & dxMagic  RUNNING ON Ubuntu server 12.04 to 16.04
 # Installs mongodb, adds required perl modules, other Linux commands and Samba
@@ -500,15 +500,15 @@ print "\n Extracting tar as /root/mongodb.tar \n";
 system("tar -xvf /root/downloads/mongodb.tar -C /root");
 
 # This extracts with the original name mongodb-linux-x86 etc, so for ease of use find the new name and change it to mongodb
-
+# Note this will clutter your root directory !!  Will use the standard apt-get when V3 is available
 print "\n Searching for mongodb-linux- directory\n  ";
 
 opendir( DIR, "/root" );
 while ( my $mongodir = readdir DIR ) {
     next if ( $mongodir eq "." or $mongodir eq ".." );
 
-    if ( -d $mongodir && $mongodir =~ m/^mongodb-linux-/ ) {
-        rename( $mongodir, 'mongodb' );
+    if ( $mongodir =~ m/^mongodb-linux-/xsm ) {
+        rename( "/root/$mongodir, '/root/mongodb' );
         print " Renamed extracted mongodb-linux- to mongodb...\n";
     }
 
