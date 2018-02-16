@@ -21,7 +21,7 @@ my $option = shift @ARGV || 'None';
 # prevents 'Use of uninitialized value'
 
 if ( $option =~ /-h/xsm ) {
-    print "   -l option can be used to loop forever\n";
+    print "   -l option can be used to loop forever\n    Also, shows output on each loop\n";
     exit 0;
 }
 print "  script is $script, options are: $option\n";
@@ -73,6 +73,7 @@ my $loop = 1;
 
 while ($loop) {
     print "  loop is running\n";
+    if ( $option =~ m/-l/xsm) { print "  -l option was used so this message will appear!\n";}
 
     # if loop -l switch not applied, dont loop, by making loop zero
     if ( $option !~ m/-l/xsm ) { $loop = 0; }
