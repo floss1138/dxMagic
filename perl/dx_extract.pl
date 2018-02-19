@@ -14,8 +14,10 @@ use File::Copy;
 use File::Path 'rmtree';    # Exported by default
 use Data::Dumper;
 use Excel::Writer::XLSX;
+use IPC::Open2;
+use Carp;    #qw(:DEFAULT cluck);
 
-our $VERSION = '0.0.21';    # version of this script
+our $VERSION = '0.0.22';    # version of this script
 
 ##  Custom variables go here ##
 
@@ -40,6 +42,9 @@ my $dx_attout = "$path/dx_attout/";
 my $dx_xlsx = "$path/dx_xlsx/";
 
 # Program variables go here:
+
+# script name used to check this script is not already running
+my $script = $PROGRAM_NAME;
 
 # CAD version lookup table
 my %cadvintage = (
@@ -69,9 +74,31 @@ my %status;
 # var to hold state of current dx file.  0 is OK, 1 initial state, 2 move failde, 3 no candidate, 4 end of parsing
 my $dx_state = 1;
 
-# Print welcome message & check folders exist
+# [^]] string, this excludes a square bracket & actually adds the square bracket to the grep pattern then it will never match itself.
+my $gfix = '[^]]';
 
-print "\n ***  dxMagic extract $PROGRAM_NAME version $VERSION  ***\n";
+# Check for options, if none found, set to 'None'
+my $option = shift @ARGV || 'None';
+
+# if @ARGV undef then || 'None' makes it never undef
+# prevents 'Use of uninitialized value'
+
+if ( $option =~ /-h/xsm ) {
+    print "   -l option can be used to loop forever\n";
+    exit 0;
+}
+print "  script is $script, options are: $option\n";
+
+# check if this script is already running
+my $psc = check_script_run($script);
+if ( $psc > 1 ) {
+    confess
+"  $script was found $psc time(s), a previous instance is running; time to die!!!\n";
+}
+
+# Print welcome message & check folders exist
+my $time = time_check();
+print "\n ***  dxMagic extract $PROGRAM_NAME version $VERSION $time ***\n";
 
 # create folders if they do not exist & add readme
 foreach (@folders) {
@@ -112,6 +139,49 @@ NOTE
         close $README or carp "  could not close $read_me";
     }
 
+## Sub to create local format time string ##
+
+sub time_check {
+    my $tcheck =
+      strftime( '%d/%m/%Y %H:%M:%S', localtime );    # create time stamp string
+    return $tcheck;
+}
+
+## sub to check if a process is running. Takes process name,
+# returns number of matching processes running
+
+sub check_script_run {
+# requires IPC:Open2
+    my @sname = @_;
+
+    # process count of number of matching scripts running
+    my $ps_count = 0;
+
+    # add script name after [^]]
+    my $grepscript = $gfix . $sname[0];
+
+    # print "  grep script is now $grepscript\n";
+
+# requires ps command or will throw a sh: 1: ps: not found error (not intended for Windows
+# try, if ( $OSNAME eq 'MSWin32' ) { my $pid = open2( \*OUT, 0, 'tasklist /v' ) }
+# \* is a reference to a file handle, * referes to all variables regardless of type
+    eval {
+        my $pid = open2( \*OUT, 0, "ps -ef | grep $grepscript" );
+        1;
+    }
+      or confess
+"Call to run ps -ef | grep $grepscript and existing proces check failed\n";
+
+    while (<OUT>) {
+        print "  grep: $_\n";
+        if ( $_ =~ /$script/ixms ) {
+            $ps_count++;
+
+            # print "  matched $script, count is $ps_count\n";
+        }
+    }
+    return $ps_count;
+}    # end of check_script_run sub
 
 ## read_dx_extract sub to read dx files folder ##
 
@@ -135,7 +205,9 @@ sub read_dx_extract {
     # foreach (@candidates) {
     #  print "  Candidate file name:>$_< found with grep $watch_folder$match\n";
     #  }
-    if ( !@candidates ) { print "  No dx_extract candidate files found\n"; }
+    if ( !@candidates ) { 
+        if ( $option =~ m/-l/xsm) { print "  No dx_extract candidate files found\n"; }
+    }
     $dx_state = 3;
     return @candidates_withpath;
 }
@@ -592,8 +664,9 @@ sub attout {
 
 ### The Program ###
 
-# loop forever with a 1 second pause between runs
-while ( sleep 1 ) {
+# loop forever if 1 
+my $loop = 1;
+while ( $loop ) {
 
     # Read watch folder, looking for correctly named files
     my @dx_files = read_dx_extract($dx_extract);
@@ -720,12 +793,13 @@ while ( sleep 1 ) {
 
     }    # end of foreach dx_file
 
-    print "  End of processing, lets check the extract watchfolder again...\n";
+    if ( $option =~ m/-l/xsm) { print "  End of processing \n"; }
 
     # set dx_state to invalid until more files found
     $dx_state = 4;
-
-}    # end of while (sleep 1)
+    if ( $option !~ m/-l/xsm ) { $loop = 0; }
+    sleep 1;
+}    # end of while ( $loop )
 
 exit 0;
 
