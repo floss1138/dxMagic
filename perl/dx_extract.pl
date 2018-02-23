@@ -41,6 +41,10 @@ my $dx_attout = "$path/dx_attout/";
 # dx Excel folder [Excel, .xlxs format version of the attout file]
 my $dx_xlsx = "$path/dx_xlsx/";
 
+# define number of identically named processes allowed.
+# if dx_extract is run from a bash script allow 2.
+my $proc_count = 2;
+
 # Program variables go here:
 
 # script name used to check this script is not already running
@@ -84,30 +88,35 @@ my $option = shift @ARGV || 'None';
 # prevents 'Use of uninitialized value'
 
 if ( $option =~ /-h/xsm ) {
-    print "   -l option can be used to loop forever\n";
+    print "   -l option can be used to loop forever,\n   and provide more verbose output for testing\n";
     exit 0;
 }
-print "  script is $script, options are: $option\n";
+if ( $option =~ /-l/xsm ) { print "  script is $script, options are: $option\n";}
 
 # check if this script is already running
 my $psc = check_script_run($script);
-if ( $psc > 1 ) {
+
+# $proc count is set at the header of this script. Normally 1 but 2 if extract called from another script
+if ( $psc > $proc_count ) {
     confess
 "  $script was found $psc time(s), a previous instance is running; time to die!!!\n";
 }
 
 # Print welcome message & check folders exist
 my $time = time_check();
-print "\n ***  dxMagic extract $PROGRAM_NAME version $VERSION $time ***\n";
+if ( $option =~ /-l/xsm ){print "\n ***  dxMagic extract $PROGRAM_NAME version $VERSION $time ***\n";}
 
 # create folders if they do not exist & add readme
 foreach (@folders) {
-    print "  Checking $_ exists";
+if ( $option =~ /-l/xsm )   { print "  Checking $_ exists";}
 
     #    mkdir($_) unless ( -d $_ );
-    if ( !-d ) { print " - not found, so creating ...\n"; mkdir; }
-    else       { print " - OK\n"; }
+    if ( $option =~ /-l/xsm ){
+        if ( !-d ) { print " - not found, so creating ...\n"; mkdir; }
+        else       { print " - OK\n"; }
+    }
 }
+
     # Add readme.txt to dx_extract watch folder
     my $readme = $dx_extract . 'README.TXT';
     if ( !open my $README, '>', $readme ) {
@@ -173,7 +182,8 @@ sub check_script_run {
 "Call to run ps -ef | grep $grepscript and existing proces check failed\n";
 
     while (<OUT>) {
-        print "  grep: $_\n";
+#  enable for debug      
+#  print "  grep: $_\n";
         if ( $_ =~ /$script/ixms ) {
             $ps_count++;
 
