@@ -17,7 +17,8 @@ dxMagic is watch folder based.  Folder names can be changed in the header of the
 **dx_fail** is for files which failed (valid file name but invalid content).  
 **dx_attout** is the resulting attout.txt files, keeping the same name but with a new extension.  
 **dx_xlsx** is the resulting attout.txt file converted to .xlsx format.  
-Files without the extension .dxx and .dxf (lower case) will not be processed.
+Files without the extension .dxx and .dxf (lower case) will not be processed.   
+Scripts will be given an -l for looping with verbose output.
 
 ## USING dx_insert
 `dx_insert` takes an attout.txt formatted file (from AutoKADs attout/export attributes or dx_extract) and merges this data back into a dxf file of the same name (and the same meta-data of course)   
@@ -39,7 +40,7 @@ dxMagic is just a collection of Perl scripts.  Excel creation requires the *Exce
 `xlscat -i` is particularly handy to show a summary of sheet names and size only. 
 For Windows, install Strawberry Perl; use cpan to install cpanm,`cpan App::cpanminus`,  then install the modules with the cpanm command, for example `cpanm Excel::Writer::XLSX`.  Edit the script headers to create the necessary folders (with appropriate slash separators for your OS).  dxMagicbuilder is an install script to setup a test environment with SAMBA shares.
 dxMagicbuilder is a hacked version of the dbdotcad build script.  Its a mess.
-For testing via an ssh session try using screen.  `screen`, `ctrl a + c` creates a new screen, `ctrl a + d detaches the screen session leaving the processes running. 
+For testing via an ssh session try using screen.  `screen`, `ctrl a + c` creates a new screen, `ctrl a + d` detaches the screen session leaving the processes running. 
 `ctrl a + n` for next screen, `ctrl a + p` for previous screen.  `screen -ls` to list screen sessions, reconnect with `screen -r <screen-shown-via-ls>`  
 
 ## A note on file formats ##
