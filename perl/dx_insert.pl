@@ -1,8 +1,9 @@
 #!/usr/bin/perl
 use strict;
 use warnings;
-use Carp;
 use List::Util qw(first);
+use IPC::Open2;
+use Carp;  #qw(:DEFAULT cluck);
 
 # used to find index of a specific array value
 
@@ -18,7 +19,7 @@ use File::Copy;
 use File::Path 'rmtree';    # Exported by default
 use Data::Dumper;
 
-our $VERSION = '0.0.06';    # version of this script
+our $VERSION = '0.0.07';    # version of this script
 
 ##  Custom variables go here ##
 
@@ -39,6 +40,10 @@ my $dx_fail = "$path/dx_fail/";
 # dx attin folder [dx attout format metadata in either .txt to be replaced in corresponding dxf file]
 my $dx_attin = "$path/dx_insert_WATCH/";
 
+# define number of identically named processes allowed.
+# if dx_extract is run from a bash script allow 2.
+my $proc_count = 2;
+
 # Program variables go here:
 
 # hash of attributes to hold to hold lines from attout file is
@@ -46,19 +51,49 @@ my %hof_blocks;
 
 my @folders = ( $dx_insert, $dx_pass, $dx_fail, $dx_attin );
 
+# script name used to check this script is not already running
+my $script = $PROGRAM_NAME;
+
+# [^]] string, this excludes a square bracket & actually adds the square bracket to the grep pattern then it will never match itself.
+my $gfix = '[^]]';
+
+# Check for options, if none found, set to 'None'
+my $option = shift @ARGV || 'None';
+
+# if @ARGV undef then || 'None' makes it never undef
+# prevents 'Use of uninitialized value'
+
+if ( $option =~ /-h/xsm ) {
+    print "   -l option can be used to loop forever,\n   and provide more verbose output for testing\n";
+    exit 0;
+}
+if ( $option =~ /-l/xsm ) { print "  script is $script, options are: $option\n";}
+
+
+# check if this script is already running
+my $psc = check_script_run($script);
+
+# $proc count is set at the header of this script. Normally 1 but 2 if extract called from another script
+if ( $psc > $proc_count ) {
+    confess
+"  $script was found $psc time(s), a previous instance is running; time to die!!!\n";
+}
+
+
 # Print welcome message & check folders exist
 
-print "\n ***  dxMagic insert $PROGRAM_NAME version $VERSION  ***\n";
+if ( $option =~ /-l/xsm ) { print "\n ***  dxMagic insert $PROGRAM_NAME version $VERSION  ***\n";}
 
 # create folders if they do not exist & add readme
 foreach (@folders) {
-    print "  Checking $_ exists";
+    if ( $option =~ /-l/xsm ){     
+         print "  Checking $_ exists";
 
-    #    mkdir($_) unless ( -d $_ );
-    if ( !-d ) { print " - not found, so creating ...\n"; mkdir; }
-    else       { print " - OK\n"; }
+        #    mkdir($_) unless ( -d $_ );
+        if ( !-d ) { print " - not found, so creating ...\n"; mkdir; }
+        else       { print " - OK\n"; }
+    }
 }
-
 # Add readme.txt to dx_extract watch folder
 
 my $readme = $dx_attin . 'README.TXT';
@@ -95,6 +130,52 @@ NOTE
     close $README or carp " Cannot close $read_me";
 }
 
+## Sub to create local format time string ##
+
+sub time_check {
+    my $tcheck =
+      strftime( '%d/%m/%Y %H:%M:%S', localtime );    # create time stamp string
+    return $tcheck;
+}
+
+## sub to check if a process is running. Takes process name,
+# returns number of matching processes running
+
+sub check_script_run {
+# requires IPC:Open2
+    my @sname = @_;
+
+    # process count of number of matching scripts running
+    my $ps_count = 0;
+
+    # add script name after [^]]
+    my $grepscript = $gfix . $sname[0];
+
+    # print "  grep script is now $grepscript\n";
+
+# requires ps command or will throw a sh: 1: ps: not found error (not intended for Windows
+# try, if ( $OSNAME eq 'MSWin32' ) { my $pid = open2( \*OUT, 0, 'tasklist /v' ) }
+# \* is a reference to a file handle, * referes to all variables regardless of type
+    eval {
+        my $pid = open2( \*OUT, 0, "ps -ef | grep $grepscript" );
+        1;
+    }
+      or confess
+"Call to run ps -ef | grep $grepscript and existing proces check failed\n";
+
+    while (<OUT>) {
+#  enable for debug
+#  print "  grep: $_\n";
+        if ( $_ =~ /$script/ixms ) {
+            $ps_count++;
+
+            # print "  matched $script, count is $ps_count\n";
+        }
+    }
+    return $ps_count;
+}    # end of check_script_run sub
+
+
 ## read_dx_attin sub to read dx files folder ##
 
 # Sub to read attin watch folder passed as argument to read_dx_watch
@@ -125,8 +206,10 @@ sub read_dx_attin {
     # foreach (@candidates) {
     #  print "  Candidate file name:>$_< found with grep $watch_folder$match\n";
     #  }
-    if ( !@candidates ) { print "  No candidate insert files found\n"; }
-
+    if ( !@candidates ) {
+        if ( $option =~ /-l/xsm ) {
+         print "  No candidate insert files found\n"; }
+    }
     return @candidates_withpath;
 }
 
@@ -245,6 +328,16 @@ sub xinparser {
       #  new .dxf file + substitutions is created with a .tmp extension of the original
     my $temp_dxf = $dxf_file;
     $temp_dxf =~ s/\.dxf$/\.tmp/x;
+    # check if dxf_file exists, if not return file not found and move the matching attribute file to failed folder
+        if (! -e $dxf_file){ 
+            print "$dxf_file could not be found\n";
+            my $fail = $dx_fail . basename($dxf_file);
+            $fail =~ s/\.dxf$/\.txt/x;
+            my $attribs = $dx_attin . basename($dxf_file);
+            $attribs =~ s/\.dxf$/\.txt/x;
+            print "moving $attribs to $fail\n";
+            move( $attribs, $fail ) or croak "move of $fail failed";
+            return 'file not found, 0'; }
     print
 "  Lets update values in $dxf_file, for tags:\n@properties\n   and write to $temp_dxf\n";
     open( my $DXFFILE, '<', $dxf_file ) or croak "$dxf_file would not open";
@@ -461,15 +554,19 @@ sub insert_target {
 
 ### The Program ###
 
-# hash of attays to hold to hold lines from attout file is %hof_blocks;
+# hash of att arrays to hold to hold lines from attout file is %hof_blocks;
 
+# loop forever if 1
+my $loop = 1;
 # loop forever with a 1 second pause between runs
-while ( sleep 1 ) {
+while ( $loop ) {
 
     # Read watch folder, looking for correctly named files
     my @attin_files = read_dx_attin($dx_attin);
 
-    print "  Looking for candidate attin file(s) ... \n";
+    if ( $option =~ /-l/xsm ) { 
+        print "  Looking for candidate attin file(s) ... \n";
+    }
     if (@attin_files) { print "  Found @attin_files\n"; }
 
     # check candidate files are static and have expected header
@@ -484,10 +581,20 @@ while ( sleep 1 ) {
         # Cheeck to see if a matching dx file is present in $dx_insert
         $target = $dx_insert . basename($attin);
 
-        # target is <name_of_attout>.dxf
+        # target dxf for insert is <name_of_attout>.dxf
+        # If its not found or invalid (status not 0), move the trigger file to fail, to prevent futher processing
         $target =~ s/\.txt$/\.dxf/x;
         my $insert_status = insert_target($target);
         print "  target is $target, status is $insert_status\n";
+        if ($insert_status eq 1) { print "$target is invalid, moving trigger file to $dx_fail\n";
+        my $fail_ = $dx_fail . basename($target);
+            $fail_ =~ s/\.dxf$/\.txt/x;
+             my $attribs_ = $dx_attin . basename($target);
+             $attribs_ =~ s/\.dxf$/\.txt/x;
+             print "moving $attribs_ to $fail_\n";
+             move( $attribs_, $fail_ ) or croak "move of $fail_ failed";
+ 
+        next;}
         print "  Checking $attin is static ...";
         my $stat1 = statnseek($attin);
         sleep 1;
@@ -587,11 +694,12 @@ while ( sleep 1 ) {
         # clear hash of blocks before next run
         undef %hof_blocks;
         print
-" \nEnd of processing, $replaced_count replacments , lets check the watchfolders again...\n";
+" \nEnd of processing, $replaced_count replacements, lets check the watchfolders again...\n";
     }    # new end of foreach dx_file
          # set dx_state to invalid until more files found
-
-}    # end of while (sleep 1)
+ if ( $option !~ m/-l/xsm ) { $loop = 0; }
+    sleep 1;
+}    # end of while ( $loop )
 
 exit 0;
 
