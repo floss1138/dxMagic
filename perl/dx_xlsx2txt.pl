@@ -18,7 +18,7 @@ use English qw(-no_match_vars);
  no warnings "uninitialized"
   ;    # prevents uninitialized warnings from ParseXLSX for blank cells in xlsx
 
-our $VERSION = '0.0.04';
+our $VERSION = '0.0.05';
 
 ##  Custom variables go here ##
 
@@ -190,6 +190,7 @@ sub readxlsx    # read xlsx and create an attin.txt file
 
                     # Remove the margin i.e. the 1st element of array
                     my $margin = shift @row;
+                    # Substitute special characters here
                     print $FILEOUT "@row$/"
                       ; # The new line needs to be MS complient hence the $/ defined as \r\n
                         # clear content of row;
@@ -307,3 +308,25 @@ while ( sleep 1 ) {
     print "  End of processing, looking for more xlsx files ...\n";
 }    # end of while (sleep)
 exit 0;
+
+__END__
+
+# TODO
+
+# Thanks to psynk, spreadsheet read needs some ASCII translation before $FILEOUT
+sub FixXML {
+    $parm = $_[0];
+    $parm =~ s/&amp;/&/g;
+    $parm =~ s/&gt;/>/g;
+    $parm =~ s/&lt;/</g;
+    $parm =~ s/&quot;/"/g;
+    $parm =~ s/&apos;/'/g;
+    $parm =~ s/&#xA;/\n/g;
+    $parm =~ s/&#xa;/\n/g;
+    $parm =~ s/&#xD;/\r/g;
+    $parm =~ s/&#xd;/\r/g;
+    $parm =~ s/&#x9;/\t/g;
+    return($parm);
+}
+
+# Add -l functionality, same as extract and insert
