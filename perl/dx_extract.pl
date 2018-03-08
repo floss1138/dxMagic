@@ -17,7 +17,7 @@ use Excel::Writer::XLSX;
 use IPC::Open2;
 use Carp;    #qw(:DEFAULT cluck);
 
-our $VERSION = '0.0.22';    # version of this script
+our $VERSION = '0.0.23';    # version of this script
 
 ##  Custom variables go here ##
 
@@ -674,7 +674,7 @@ sub attout {
 
 ### The Program ###
 
-# loop forever if 1 
+# loop forever if 1 and sleep 1 if -l option is set 
 my $loop = 1;
 while ( $loop ) {
 
@@ -807,8 +807,8 @@ while ( $loop ) {
 
     # set dx_state to invalid until more files found
     $dx_state = 4;
-    if ( $option !~ m/-l/xsm ) { $loop = 0; }
-    sleep 1;
+    if ( $option =~ m/-l/xsm ) { $loop = 1; sleep 1; }
+        else { $loop = 0; }
 }    # end of while ( $loop )
 
 exit 0;
