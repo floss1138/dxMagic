@@ -19,7 +19,7 @@ use File::Copy;
 use File::Path 'rmtree';    # Exported by default
 use Data::Dumper;
 
-our $VERSION = '0.0.07';    # version of this script
+our $VERSION = '0.0.08';    # version of this script
 
 ##  Custom variables go here ##
 
@@ -558,7 +558,7 @@ sub insert_target {
 
 # loop forever if 1
 my $loop = 1;
-# loop forever with a 1 second pause between runs
+# loop forever with a 1 second pause between runs if -l option used
 while ( $loop ) {
 
     # Read watch folder, looking for correctly named files
@@ -697,13 +697,13 @@ while ( $loop ) {
 " \nEnd of processing, $replaced_count replacements, lets check the watchfolders again...\n";
     }    # new end of foreach dx_file
          # set dx_state to invalid until more files found
- if ( $option !~ m/-l/xsm ) { $loop = 0; }
-    sleep 1;
+ if ( $option =~ m/-l/xsm ) { $loop = 1; sleep 1; }
+     else { $loop = 0; }
 }    # end of while ( $loop )
 
 exit 0;
 
 __END__
 
-# TODO Move any invalid files from the watch folder to failed?  Or is it more obvious for the user to leave them in the watch folder?
+# TODO Move invalid format dxf files to failed
 # Write a results file in the dxf4insert folder, appended with date stamp  
