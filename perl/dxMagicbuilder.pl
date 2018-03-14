@@ -17,7 +17,7 @@ use IPC::Open2;
 # useful, but without any warranty; without even the implied
 # warranty of merchantability or fitness for a particular purpose.
 
-our $VERSION = '0.0.53';
+our $VERSION = '0.0.54';
 
 # SERVER BUILD SCRIPT FOR dbDotCad & dxMagic  RUNNING ON Ubuntu server 12.04 to 16.04
 # Installs mongodb, adds required perl modules, other Linux commands and Samba
@@ -508,7 +508,7 @@ while ( my $mongodir = readdir DIR ) {
     next if ( $mongodir eq "." or $mongodir eq ".." );
 
     if ( $mongodir =~ m/^mongodb-linux-/xsm ) {
-        rename( "/root/$mongodir, '/root/mongodb' );
+        rename( "/root/$mongodir", '/root/mongodb' );
         print " Renamed extracted mongodb-linux- to mongodb...\n";
     }
 
