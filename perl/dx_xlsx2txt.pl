@@ -18,7 +18,7 @@ use English qw(-no_match_vars);
  no warnings "uninitialized"
   ;    # prevents uninitialized warnings from ParseXLSX for blank cells in xlsx
 
-our $VERSION = '0.0.05';
+our $VERSION = '0.0.06';
 
 ##  Custom variables go here ##
 
@@ -122,6 +122,7 @@ sub read_xlsxtotxt {
     return @candidates_withpath;
 }    # End of read_xlstotxt
 
+
 ## READ XLSX sub ##
 # Take filename to read as argument
 
@@ -190,7 +191,18 @@ sub readxlsx    # read xlsx and create an attin.txt file
 
                     # Remove the margin i.e. the 1st element of array
                     my $margin = shift @row;
+
                     # Substitute special characters here
+                    for (@row) 
+                        {
+                        s/&amp;/&/g;
+                        s/&gt;/>/g;
+                        s/&lt;/</g;
+                        s/&quot;/"/g;
+                        s/&apos;/'/g;
+                        } 
+
+  
                     print $FILEOUT "@row$/"
                       ; # The new line needs to be MS complient hence the $/ defined as \r\n
                         # clear content of row;
