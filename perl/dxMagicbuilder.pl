@@ -17,7 +17,7 @@ use IPC::Open2;
 # useful, but without any warranty; without even the implied
 # warranty of merchantability or fitness for a particular purpose.
 
-our $VERSION = '0.0.54';
+our $VERSION = '0.0.55';
 
 # SERVER BUILD SCRIPT FOR dbDotCad & dxMagic  RUNNING ON Ubuntu server 12.04 to 16.04
 # Installs mongodb, adds required perl modules, other Linux commands and Samba
@@ -763,7 +763,7 @@ To enable to root account on Ununtu Server, sudo passwd root.
 To enable root ssh sudo vi /etc/ssh/sshd_config, PermitRootLogin yes, service ssh restart.
 From /root, git clone https://ghithub.com/floss1138/dbDotCad 
 Configure git:
-git config --global email.address floss1138\@gmail.com
+git config --global user.email "floss1138\@gmail.com"
 git config --global user.name "floss1138"
 
 *** Live Long and Prosper ***
