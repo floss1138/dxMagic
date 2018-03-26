@@ -1,5 +1,5 @@
 # dxMagic
-Proof of concept DXF and DXX file parser to extract attribute meta-data
+Proof of concept DXF and DXX file parser to extract attribute meta-data.  This is intented to run on an Ubuntu server instance.
 
 dxMagic is a proof of concept attempt to take dxx output from AutoKAD LT/ProgKAD and turn it into an ATTOUT formatted text file.  This provides similar results to the ATTOUT function available in the full version of AutoKAD but using the `ATTEXT` function instead of `ATTOUT`.  With little modification it is possible to extend dxx parsing to entier ASCII dxf files.  In the case of a dxf file, all the attribute data from both model and paper space is extracted.  dx_extract makes it possible to extract attribute data directly from the drawing file without the need to open it in a CAD package.  `ATTIN` functionality is similary provided by merging attribute data back into the .dxf using dx_insert.
 
@@ -7,7 +7,7 @@ dxMagic is a proof of concept attempt to take dxx output from AutoKAD LT/ProgKAD
 Please excuse the alternative spellings; they are intended to prevent search engines picking up this document. Some AutoKAD commands will be explained but this is not a CAD tutorial. There are lots of good tutorials for AutoKAD. This is not one of them.
 
 ## USING dxMagic
-dxMagic is watch folder based.  Folder names can be changed in the header of the scripts. Default names begin with *dx_* to show they belong to dxMagic and end in *_WATCH* if this is a trigger folder.  Placing a file in the watch folder will initiate file processing.  A dxf formatted file also needs to be present as the dx_insert target.  In addition to the attout formatted text file an xlsx spread sheet is also provided.  This can be edited and converted to and attin/attout formatted text file with dx_xls2txt.  An optional build script will create an example directory structure, making this available as SAMBA shares.  
+dxMagic is watch folder based.  Folder names can be changed in the header of the scripts. Default names begin with *dx_* to show they belong to dxMagic and end in *_WATCH* if this is a trigger folder.  Placing a file in the WATCH folder will initiate file processing.  A dxf formatted file (name matched to the attribute file) also needs to be present as the dx_insert target.  In addition to the attout formatted text file an xlsx spread sheet is also provided.  This can be edited and converted to and attin/attout formatted text file with dx_xls2txt.  The build script will create an example directory structure, making this available as SAMBA shares.  Run the extract/insert scripts with -l for looping with verbose output.  
 
 ## USING dx_extract
 `dx_extract.pl` will create the necessary folder structure when run (if not already present).
@@ -18,14 +18,13 @@ dxMagic is watch folder based.  Folder names can be changed in the header of the
 **dx_attout** is the resulting attout.txt files, keeping the same name but with a new extension.  
 **dx_xlsx** is the resulting attout.txt file converted to .xlsx format.  
 Files without the extension .dxx and .dxf (lower case) will not be processed.   
-Scripts will be given an -l for looping with verbose output.
 
 ## USING dx_insert
 `dx_insert` takes an attout.txt formatted file (from AutoKADs attout/export attributes or dx_extract) and merges this data back into a dxf file of the same name (and the same meta-data of course)   
 **dx_insert_WATCH** is for the attribute.txt file.  Must have the same name as the dxf other than the extension.   
 **dx_dxf4insert** is for the .dxf file intended for attribute replacement.     
-During attribute replacement a temporary file will be created in dx_dxf_WATCH with a .tmp extension.  The updated file will replace the original .dxf.
-The attribute .txt file will be moved to the pass folder on successful completion; however, the .dxf will remain in dx_dxf_WATCH pending further updates.   
+During attribute replacement a temporary file will be created in dx_dxf4insert with a .tmp extension.  The updated file will replace the original .dxf.
+The attribute .txt file will be moved to the pass folder on successful completion, however, the .dxf will remain in dx_dxf4insert pending further updates.   
 
 ## USING dx_xls2txt
 `dx_xlsx2txt` takes xlsx files created with dx_extract and converts these to attout.txt format.  This in turn can be inserted with dx_insert or imported with AutoKADs ATTIN command.   
@@ -56,7 +55,7 @@ Although binary files are smaller and preserve floating point accuracy from the 
 ## AutoKAD meta-data - a concise explanation for programmers
 
 AutoKAD can group graphical lines and key(property)/value data by creating a block.  This allows for easy duplication of commonly used items; for example, a block can be created for a chair and re-used several times in an office layout.  The chair block can optionally contain multiple key(property)/value pairs of meta-data, called attributes, designed to describe the chair or furniture class object.
-The data key is called a TAG and the value can display as text on a drawing layer or be hidden. The TAG name cannot contain spaces and is normalised to upper case. Think of creating a block with attribute meta-data as creating a data object.   
+The data key is called a TAG and the value can display as text on a drawing layer or be hidden. The TAG name cannot contain spaces and is normalised to upper case. Think of creating a block with attribute meta-data as creating a data object. Adding an attribute adds another key/value pair to the block object.  
 
 Attribute values can be automatically populated with CAD variables such as the drawing title, date, file name, user, etc.  The default value is populated when the block is inserted.  When attributes are manually populated, a prompt can be issued to remind the user what is required for an attribute value on an attribute by attribute basis.  The value can also be a predetermined constant.   
 
@@ -78,6 +77,7 @@ Auto & Prog will save DWG to DXF but it is best practice to use the `AUDIT` comm
 Auto/ProgKAD has two different view modes.  MODEL space is where the design work is actually done and has defined units of measure to a defined resolution.  A viewport is created into the MODEL space, usually scaled to fit a given paper size.  Typically a drawing boarder is placed within the PAPER space so the viewport shows the desired area of the model scaled within the boarder.  The boarder can contain blocks and will usually contain attribute data to show the document title, versions & revisions.  The `ATTEXT` function can only select and create a dxx export from the drawing space visible at the time.  The dxf file is for a whole drawing, so parsing this file will result in all the meta-data from both MODEL and PAPER space being extracted. 
 
 To display the block handle value from the drawing use the command `BLOCK?` (assuming you have Express Tools available) or using Lisp `(entget (car (entsel)))`   
-To zoom to a block by handle value, `_ZOOM`, Select the Object option. When prompted to Select Objects, enter `(HANDENT "HandleID")`, press ENTER to Zoom to this object.  In practice this reduces to somthing like: `Z ENTER o ENTER (HANDENT"ABCD") ENTER ENTER`.  An object can be selecte in a similar way with the `_SELECT` command.
-
+To zoom to a block by handle value, `_ZOOM`, Select the Object option. When prompted to Select Objects, enter `(HANDENT "HandleID")`, press ENTER to Zoom to this object.  In practice this reduces to somthing like: `Z ENTER o ENTER (HANDENT"ABCD") ENTER ENTER`.  An object can be selected in a similar way with the `_SELECT` command.
+A hyphen before a command will avoid the dialog box. An asterisk before a block name will insert it exploded. `-insert:*MyBlock`  
+Command strings require a different syntax, for example zoom extents together becomes `(command "zoom" "e")`   
 
