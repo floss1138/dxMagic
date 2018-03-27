@@ -7,9 +7,9 @@ dxMagic is a proof of concept attempt to take dxx output from AutoKAD LT/ProgKAD
 Please excuse the alternative spellings; they are intended to prevent search engines picking up this document. Some AutoKAD commands will be explained but this is not a CAD tutorial. There are lots of good tutorials for AutoKAD. This is not one of them.
 
 ## USING dxMagic
-dxMagic is watch folder based.  Folder names can be changed in the header of the scripts. Default names begin with *dx_* to show they belong to dxMagic and end in *_WATCH* if this is a trigger folder.  Placing a file in the WATCH folder will initiate file processing.  A dxf formatted file (name matched to the attribute file) also needs to be present as the dx_insert target.  In addition to the attout formatted text file an xlsx spread sheet is also provided.  This can be edited and converted to and attin/attout formatted text file with dx_xls2txt.  The build script will create an example directory structure, making this available as SAMBA shares.  Run the extract/insert scripts with -l for looping with verbose output.  
+dxMagic is watch folder based.  Folder names can be changed in the header of the scripts. Default names begin with *dx_* to show they belong to dxMagic and end in *_WATCH* if this is a trigger folder.  Placing a file in the WATCH folder will initiate file processing.  A dxf formatted file (name matched to the attribute file) also needs to be present as the dx_insert target.  In addition to the attout formatted text file an xlsx spread sheet is also provided.  This can be edited and converted to and attin/attout formatted text file with dx_xls2txt.  The build script will create an example directory structure, making this available as SAMBA shares.  Run the extract/insert/xlsx2txt scripts with -l for looping with verbose output.  
 
-## USING dx_extract
+## USING dx_extract (-h -l)
 `dx_extract.pl` will create the necessary folder structure when run (if not already present).
 
 **dx_extract_WATCH** folder is for the dxx or dxf files to be parsed & has a readme for more info.   .  
@@ -19,14 +19,14 @@ dxMagic is watch folder based.  Folder names can be changed in the header of the
 **dx_xlsx** is the resulting attout.txt file converted to .xlsx format.  
 Files without the extension .dxx and .dxf (lower case) will not be processed.   
 
-## USING dx_insert
+## USING dx_insert (-h -l)
 `dx_insert` takes an attout.txt formatted file (from AutoKADs attout/export attributes or dx_extract) and merges this data back into a dxf file of the same name (and the same meta-data of course)   
 **dx_insert_WATCH** is for the attribute.txt file.  Must have the same name as the dxf other than the extension.   
 **dx_dxf4insert** is for the .dxf file intended for attribute replacement.     
 During attribute replacement a temporary file will be created in dx_dxf4insert with a .tmp extension.  The updated file will replace the original .dxf.
 The attribute .txt file will be moved to the pass folder on successful completion, however, the .dxf will remain in dx_dxf4insert pending further updates.   
 
-## USING dx_xls2txt
+## USING dx_xls2txt (-h -l)
 `dx_xlsx2txt` takes xlsx files created with dx_extract and converts these to attout.txt format.  This in turn can be inserted with dx_insert or imported with AutoKADs ATTIN command.   
 **dx_xlsx2txt_WATCH** is for the .xlsx files produced by dx_extract. File must have an .xlsx extension.  
 **dx_attin** is the destination for the converted file.   
@@ -34,8 +34,8 @@ attin/attout files should always have .txt extensions and Windows format new lin
 The .xlsx file produced by dx_extract has the first 2 rows and the first column as margin space.  These must remain & can be used for comments. 
 In the future, the left most column might be used to flag a row for further processing if it contains the relevant command.   
 
-### Installing dxMagic
-dxMagic is just a collection of Perl scripts.  Excel creation requires the *Excel::Writer::XLSX* module to be installed.  *Spreadsheet::Read* is required for the xlsx read subroutine. This also requires  *Spreadsheet::ParseXLSX*. Once Spreadsheet read isinstalled,`xlscat` command is available and very handy for teseting. 
+### USING dxMagicbuilder & Installing dxMagic
+dxMagic is just a collection of Perl scripts. The build script dxMagicbuilder.pl will create an example directory structure, making this available as SAMBA shares. A default user 'alice' will be created with user defined password.  Excel creation requires the *Excel::Writer::XLSX* module to be installed; modules are added by the build script.  *Spreadsheet::Read* is required for the xlsx read subroutine. This also requires  *Spreadsheet::ParseXLSX*. Once Spreadsheet read isinstalled,`xlscat` command is available and very handy for teseting. 
 `xlscat -i` is particularly handy to show a summary of sheet names and size only. 
 For Windows, install Strawberry Perl; use cpan to install cpanm,`cpan App::cpanminus`,  then install the modules with the cpanm command, for example `cpanm Excel::Writer::XLSX`.  Edit the script headers to create the necessary folders (with appropriate slash separators for your OS).  dxMagicbuilder is an install script to setup a test environment with SAMBA shares.
 dxMagicbuilder is a hacked version of the dbdotcad build script.  Its a mess.
