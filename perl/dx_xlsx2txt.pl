@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use File::Copy;      # for move
 use File::stat;      # for methods size, mtime etc.
-use Carp;            # for croak
+use Carp;            # for croak, qw(:DEFAULT cluck);
 use
   Spreadsheet::Read; # required for xlsx read subroutine but this also requires:
 
@@ -17,8 +17,9 @@ use File::Basename;
 use English qw(-no_match_vars);
  no warnings "uninitialized"
   ;    # prevents uninitialized warnings from ParseXLSX for blank cells in xlsx
+use IPC::Open2;
 
-our $VERSION = '0.0.06';
+our $VERSION = '0.0.08';
 
 ##  Custom variables go here ##
 
@@ -40,17 +41,52 @@ my $dx_fail = "$path/dx_fail/";
 # these would typically be imported with the ATTIN command]
 my $dx_attin = "$path/dx_attin/";
 
+# define number of identically named processes allowed.
+# if dx_extract is run from a bash script allow 2.
+my $proc_count = 2;
+
+##  End of custom variables ##
+
+# script name used to check this script is not already running
+my $script = $PROGRAM_NAME;
+
+# [^]] string, this excludes a square bracket & actually adds the square bracket to the grep pattern then it will never match itself.
+my $gfix = '[^]]';
+
+# Check for options, if none found, set to 'None'
+my $option = shift @ARGV || 'None';
+
+# if @ARGV undef then || 'None' makes it never undef
+# prevents 'Use of uninitialized value'
+
+if ( $option =~ /-h/xsm ) {
+    print "   -l option can be used to loop forever,\n   and provide more verbose output for testing\n";
+    exit 0;
+}
+if ( $option =~ /-l/xsm ) { print "  script is $script, options are: $option\n";}
+
+
+# check if this script is already running
+my $psc = check_script_run($script);
+
+# $proc count is set at the header of this script. Normally 1 but 2 if extract called from another script
+if ( $psc > $proc_count ) {
+    confess
+"  $script was found $psc time(s), a previous instance is running; time to die!!!\n";
+}
+
+
 my @folders = ( $dx_pass, $dx_fail, $dx_attin, $dx_xlsxtotxt );
-
-print "\n ***  dxMagic xlsx to txt $PROGRAM_NAME version $VERSION  ***\n";
-
+if ( $option =~ /-l/xsm ){
+    print "\n ***  dxMagic xlsx to txt $PROGRAM_NAME version $VERSION  ***\n";
+    }
 # create folders if they do not exist & add readme
 foreach (@folders) {
-    print "  Checking $_ exists";
-
+    if ( $option =~ /-l/xsm ){
+        print "  Checking $_ exists";
+        }
     #    mkdir($_) unless ( -d $_ );
     if ( !-d ) { print " - not found, so creating ...\n"; mkdir; }
-    else       { print " - OK\n"; }
 }
 
 # Add readme.txt to dx_xlsxtotxt watch folder
@@ -90,6 +126,52 @@ NOTE
 # set record sep back to undefined (only applies to print so cannot send heredoc to file handle)
 undef $ORS;
 
+## Sub to create local format time string ##
+
+sub time_check {
+    my $tcheck =
+      strftime( '%d/%m/%Y %H:%M:%S', localtime );    # create time stamp string
+    return $tcheck;
+}
+
+## sub to check if a process is running. Takes process name,
+# returns number of matching processes running
+
+sub check_script_run {
+# requires IPC:Open2
+    my @sname = @_;
+
+    # process count of number of matching scripts running
+    my $ps_count = 0;
+
+    # add script name after [^]]
+    my $grepscript = $gfix . $sname[0];
+
+    # print "  grep script is now $grepscript\n";
+
+# requires ps command or will throw a sh: 1: ps: not found error (not intended for Windows
+# try, if ( $OSNAME eq 'MSWin32' ) { my $pid = open2( \*OUT, 0, 'tasklist /v' ) }
+# \* is a reference to a file handle, * referes to all variables regardless of type
+    eval {
+        my $pid = open2( \*OUT, 0, "ps -ef | grep $grepscript" );
+        1;
+    }
+      or confess
+"Call to run ps -ef | grep $grepscript and existing proces check failed\n";
+
+    while (<OUT>) {
+#  enable for debug
+#  print "  grep: $_\n";
+        if ( $_ =~ /$script/ixms ) {
+            $ps_count++;
+
+            # print "  matched $script, count is $ps_count\n";
+        }
+    }
+    return $ps_count;
+}    # end of check_script_run sub
+
+
 ## Sub to read xlsxtotxt watch folder ##
 
 sub read_xlsxtotxt {
@@ -117,8 +199,9 @@ sub read_xlsxtotxt {
     # foreach (@candidates) {
     #  print "  Candidate file name:>$_< found with grep $watch_folder$match\n";
     #  }
-    if ( !@candidates ) { print "  No candidate files found\n"; }
-
+    if ( $option =~ /-l/xsm ){
+        if ( !@candidates ) { print "  No candidate files found\n"; }
+    }
     return @candidates_withpath;
 }    # End of read_xlstotxt
 
@@ -286,8 +369,11 @@ sub statnseek {
 
 ### THE PROGRAM ###
 
-#  Loop at 1 second interval (remember to $|++ if print is not flushed with \n)
-while ( sleep 1 ) {
+# Loop at 1 second interval (remember to $|++ if print is not flushed with \n)
+# loop forever if 1 and sleep 1 if -l option is set
+ my $loop = 1;
+
+while ( $loop ) {
 
     # read watch folder for xlsx candidates
     my @xlsx_files = read_xlsxtotxt($dx_xlsxtotxt);
@@ -317,7 +403,12 @@ while ( sleep 1 ) {
         }    # end of if stat1 eq stat2
     }    # end of foreach @xlsx_files
     undef @xlsx_files;
-    print "  End of processing, looking for more xlsx files ...\n";
+    if ( $option =~ /-l/xsm ){
+        print "  End of processing, looking for more xlsx files ...\n";
+        }
+ if ( $option =~ m/-l/xsm ) { $loop = 1; sleep 1; }
+     else { $loop = 0; }
+
 }    # end of while (sleep)
 exit 0;
 
