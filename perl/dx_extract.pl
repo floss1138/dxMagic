@@ -507,7 +507,7 @@ sub xparser {
 "\n ATTRIB,  5 count: $attrib5_count \n SEQEND count: $seqend_count, AcDbSequenceEnd count: $acdbend_count\n";
 
     $status{'Attrib5'} = $attrib5_count;
-    $status{'Seqend'}  = $acdbend_count;
+    $status{'Seqend'}  = $seqend_count;
 
 # Clear tagcheck & orphan, seqend, acdbsequenceend counts before next run of xparser
     %tagcheck      = ();
