@@ -1,5 +1,5 @@
 # dxMagic
-Proof of concept DXF and DXX file parser to extract attribute meta-data.  This is intented to run on an Ubuntu server instance.
+Proof of concept DXF and DXX file parser to extract attribute meta-data.  This collection of Perl scripts is intented to run on Ubuntu server for which there is a build script.
 
 dxMagic is a proof of concept attempt to take dxx output from AutoKAD LT/ProgKAD and turn it into an ATTOUT formatted text file.  This provides similar results to the ATTOUT function available in the full version of AutoKAD but using the `ATTEXT` function instead of `ATTOUT`.  With little modification it is possible to extend dxx parsing to entier ASCII dxf files.  In the case of a dxf file, all the attribute data from both model and paper space is extracted.  dx_extract makes it possible to extract attribute data directly from the drawing file without the need to open it in a CAD package.  `ATTIN` functionality is similary provided by merging attribute data back into the .dxf using dx_insert.
 
@@ -7,7 +7,7 @@ dxMagic is a proof of concept attempt to take dxx output from AutoKAD LT/ProgKAD
 Please excuse the alternative spellings; they are intended to prevent search engines picking up this document. Some AutoKAD commands will be explained but this is not a CAD tutorial. There are lots of good tutorials for AutoKAD. This is not one of them.
 
 ## USING dxMagic
-dxMagic is watch folder based.  Folder names can be changed in the header of the scripts. Default names begin with *dx_* to show they belong to dxMagic and end in *_WATCH* if this is a trigger folder.  Placing a file in the WATCH folder will initiate file processing.  A dxf formatted file (name matched to the attribute file) also needs to be present as the dx_insert target.  In addition to the attout formatted text file an xlsx spread sheet is also provided.  This can be edited and converted to and attin/attout formatted text file with dx_xls2txt.  The build script will create an example directory structure, making this available as SAMBA shares.  Run the extract/insert/xlsx2txt scripts with -l for looping with verbose output.  
+dxMagic is watch folder based.  Folder names can be changed in the header of the scripts. Default names begin with *dx_* to show they belong to dxMagic and end in *_WATCH* if this is a trigger folder.  Placing a file in the WATCH folder will initiate file processing.  A dxf formatted file (name matched to the attribute file) also needs to be present as the dx_insert target.  In addition to the attout formatted text file an xlsx spread sheet is also provided.  This can be edited and converted to and attin/attout formatted text file with dx_xls2txt.  The build script will create an example directory structure, making this available as SAMBA shares.  Run the extract/insert/xlsx2txt scripts with -l for looping with verbose output. Use the dx_loop script to run all the scripts together and send the output to syslog.
 
 ## USING dx_extract (-h -l)
 `dx_extract.pl` will create the necessary folder structure when run (if not already present).
