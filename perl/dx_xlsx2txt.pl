@@ -19,7 +19,7 @@ use English qw(-no_match_vars);
   ;    # prevents uninitialized warnings from ParseXLSX for blank cells in xlsx
 use IPC::Open2;
 
-our $VERSION = '0.0.08';
+our $VERSION = '0.0.09';
 
 ##  Custom variables go here ##
 
@@ -28,7 +28,7 @@ my $path ='/home/alice/MyCAD/dxMagic';
 # Directories will be owned by the user running this script
 # chown may be necessary
 
-# dx insert folder [files for parsing]
+# Default dx insert folder [files for parsing] (unless -i option used)
 my $dx_xlsxtotxt = "$path/dx_xlsx2txt_WATCH/";
 
 # dx pass folder [processed xlsx files]
@@ -37,7 +37,7 @@ my $dx_pass = "$path/dx_pass/";
 # dx fail folder [xlsx files that did not look like a dx, xlsx file]
 my $dx_fail = "$path/dx_fail/";
 
-# dx attin folder [processed xlsx converted to attin/attout files;
+# Default dx attin folder processed xlsx converted to attin/attout files unless -i option used;
 # these would typically be imported with the ATTIN command]
 my $dx_attin = "$path/dx_attin/";
 
@@ -60,11 +60,20 @@ my $option = shift @ARGV || 'None';
 # prevents 'Use of uninitialized value'
 
 if ( $option =~ /-h/xsm ) {
-    print "   -l option can be used to loop forever,\n   and provide more verbose output for testing\n";
+    print "   -l loop option can be used to loop forever,\n   and provide more verbose output for testing\n";
+    print "   -i insert option changes the source and destination to be\n   the insert_WATCH folder\n";  
     exit 0;
 }
 if ( $option =~ /-l/xsm ) { print "  script is $script, options are: $option\n";}
 
+
+# if option is -i, change watch folder to be source and destination for the attribute insert operation
+# this makes the script take an xlsx, convert to txt and have this processed when the insert script runs
+
+if ( $option =~ /-i/xsm ) {
+    $dx_xlsxtotxt = "$path/dx_insert_WATCH/";
+    $dx_attin = "$path/dx_insert_WATCH/";
+    }
 
 # check if this script is already running
 my $psc = check_script_run($script);
@@ -90,8 +99,11 @@ foreach (@folders) {
 }
 
 # Add readme.txt to dx_xlsxtotxt watch folder
-
+# If using -i option, write an alternative README_FOR_XLSX file.  attin/destination path will be different.
 my $readme = $dx_xlsxtotxt . 'README.TXT';
+if ( $option =~ /-i/xsm ){
+    $readme = $dx_xlsxtotxt . 'README_FOR_XLSX.TXT';
+    }
 if ( !open my $README, '>', $readme ) {
     print "\n  failed to open $readme\n";
 }
