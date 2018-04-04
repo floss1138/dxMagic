@@ -26,13 +26,15 @@ Files without the extension .dxx and .dxf (lower case) will not be processed.
 During attribute replacement a temporary file will be created in dx_dxf4insert with a .tmp extension.  The updated file will replace the original .dxf.
 The attribute .txt file will be moved to the pass folder on successful completion, however, the .dxf will remain in dx_dxf4insert pending further updates.   
 
-## USING dx_xls2txt (-h -l)
+## USING dx_xls2txt (-h -l -i)
 `dx_xlsx2txt` takes xlsx files created with dx_extract and converts these to attout.txt format.  This in turn can be inserted with dx_insert or imported with AutoKADs ATTIN command.   
 **dx_xlsx2txt_WATCH** is for the .xlsx files produced by dx_extract. File must have an .xlsx extension.  
 **dx_attin** is the destination for the converted file.   
 attin/attout files should always have .txt extensions and Windows format new lines.   
 The .xlsx file produced by dx_extract has the first 2 rows and the first column as margin space.  These must remain & can be used for comments. 
 In the future, the left most column might be used to flag a row for further processing if it contains the relevant command.   
+-i option changes the insert path for source and destination to match the insert WATCH folder.  Running in this mode allows the xlsx conversion to be followed by insertion without 
+having to move the processed attout file to the insert WATCH folder.    
 
 ### USING dxMagicbuilder & Installing dxMagic
 dxMagic is just a collection of Perl scripts. The build script dxMagicbuilder.pl will create an example directory structure, making this available as SAMBA shares. A default user 'alice' will be created with user defined password.  Excel creation requires the *Excel::Writer::XLSX* module to be installed; modules are added by the build script.  *Spreadsheet::Read* is required for the xlsx read subroutine. This also requires  *Spreadsheet::ParseXLSX*. Once Spreadsheet read isinstalled,`xlscat` command is available and very handy for teseting. 
@@ -72,12 +74,13 @@ Full AutoKAD (2004 and higher) has express tools to perform attribute export/imp
 
 AutoKAD light and ProgKAD do not have the attribute import/export tool; however, the earlier `ATTEXT` command also present in full AutoKAD is available.  `ATTEXT` can be used to produce a comma or space delimited file but for these formats it is necessary to provide a template file.  Obviously the template would have to be updated every time a new block with different tags is created i.e. new tags or object classes require template changes.  The BL:HANDLE will be required as a reference to import the data back into the drawing.  The DXX option provides a  file output which is a fragment of the DWG format.  DXX is more flexible with no need for a template but parsing of the resulting file will be required.  There are differences in the resulting data between ProgKAD and AutoKAD but the objective is to provide transparent parsing of dxx/dxf. The Design Web Format is out of scope.  DWG TrueView (a free utility) will save to different versions of DWG and will export DWF & DWFx but will not save to DXF.  TrueView will open DXF for viewing and save to DWG.
 
-Auto & Prog will save DWG to DXF but it is best practice to use the `AUDIT` command to clean up the drawing prior to saving to DXF.  `PURGE` & `OVERKILL` are also useful for removing unwanted drawing components.  AutoKAD has been known to save into DXF and then not be able to load the file it just saved, without AUDITing first. The `ATTEXT` command (same as the earlier `DDATTEXT` command) can be used to save a selected area on a drawing in either MODEL or PAPER space.
+Auto & Prog will save DWG to DXF but it is best practice to use the `AUDIT` command to clean up the drawing prior to saving to DXF.  `PURGE` & `OVERKILL` are also useful for removing unwanted drawing components.  AutoKAD has been known to save into DXF and then not be able to load the file it just saved, without AUDITing first, Error in STYLE Tables with Invalid symbol table record names are common. The `ATTEXT` command (same as the earlier `DDATTEXT` command) can be used to save a selected area on a drawing in either MODEL or PAPER space.
 
 Auto/ProgKAD has two different view modes.  MODEL space is where the design work is actually done and has defined units of measure to a defined resolution.  A viewport is created into the MODEL space, usually scaled to fit a given paper size.  Typically a drawing boarder is placed within the PAPER space so the viewport shows the desired area of the model scaled within the boarder.  The boarder can contain blocks and will usually contain attribute data to show the document title, versions & revisions.  The `ATTEXT` function can only select and create a dxx export from the drawing space visible at the time.  The dxf file is for a whole drawing, so parsing this file will result in all the meta-data from both MODEL and PAPER space being extracted. 
 
-To display the block handle value from the drawing use the command `BLOCK?` (assuming you have Express Tools available) or using Lisp `(entget (car (entsel)))`   
+To display the block handle value from the drawing use the command use Lisp `(entget (car (entsel)))` and look for group 5.  
+To list objects in a block definition use `BLOCK?` if Express Tools area vailable.      
 To zoom to a block by handle value, `_ZOOM`, Select the Object option. When prompted to Select Objects, enter `(HANDENT "HandleID")`, press ENTER to Zoom to this object.  In practice this reduces to somthing like: `Z ENTER o ENTER (HANDENT"ABCD") ENTER ENTER`.  An object can be selected in a similar way with the `_SELECT` command.
 A hyphen before a command will avoid the dialog box. An asterisk before a block name will insert it exploded. `-insert:*MyBlock`  
-Command strings require a different syntax, for example zoom extents together becomes `(command "zoom" "e")`   
+Command strings require a different syntax, for example zoom extents together becomes `(command "zoom" "e")`, zoom to a known object with handle entity 84E9, `(COMMAND "ZOOM" "OBJECT" (HANDENT"84E9"))`, then Return.      
 
