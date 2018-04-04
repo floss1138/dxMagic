@@ -19,7 +19,7 @@ use File::Copy;
 use File::Path 'rmtree';    # Exported by default
 use Data::Dumper;
 
-our $VERSION = '0.0.08';    # version of this script
+our $VERSION = '0.0.09';    # version of this script
 
 ##  Custom variables go here ##
 
@@ -96,7 +96,7 @@ foreach (@folders) {
 }
 # Add readme.txt to dx_extract watch folder
 
-my $readme = $dx_attin . 'README.TXT';
+my $readme = $dx_attin . 'README_FOR_TXT.TXT';
 if ( !open my $README, '>', $readme ) {
     print "\n  failed to open $readme\n";
 }
