@@ -17,7 +17,7 @@ use Excel::Writer::XLSX;
 use IPC::Open2;
 use Carp;    #qw(:DEFAULT cluck);
 
-our $VERSION = '0.0.23';    # version of this script
+our $VERSION = '0.0.24';    # version of this script
 
 ##  Custom variables go here ##
 
@@ -40,6 +40,11 @@ my $dx_attout = "$path/dx_attout/";
 
 # dx Excel folder [Excel, .xlxs format version of the attout file]
 my $dx_xlsx = "$path/dx_xlsx/";
+
+# Spread sheet can contain a command in the magic margin
+# variables to hold command & entity value 
+my $ent = 0;
+my $command; # e.g. '(COMMAND "ZOOM" "OBJECT" (HANDENT"'.$ent.'"))'
 
 # define number of identically named processes allowed.
 # if dx_extract is run from a bash script allow 2.
@@ -582,9 +587,11 @@ sub excelout {
     $worksheet_rm->write( 'B13',
 'The attout tab shows data from a CAD attout file in spread sheet form.  Blank fields simply contain no data, i.e. they are empty.  Fields containing <> are not valid for that column.'
     );
-
-    $worksheet_rm->write( 'B15', 'Debug info:' );
-    $worksheet_rm->write( 'B16',
+$worksheet_rm->write( 'B14',
+'The first column (the Magic Margin) is reserved for commands. By default this contains zoom to object. Paste into the CAD command line, followd by Return twice to zoom to the entity.'
+   );
+    $worksheet_rm->write( 'B16', 'Debug info:' );
+    $worksheet_rm->write( 'B17',
 "This sheet was created from $attout_basename, derived from a $status{'FileType'}, Title: $status{'DocTitle'}"
     );
     $worksheet_rm->write( 'B17',
@@ -600,7 +607,7 @@ sub excelout {
     $worksheet_attout->set_row( 2, undef, $format );
 
     #  Set column width for attout sheet
-    $worksheet_attout->set_column( 'B:IZ', 14 );
+    $worksheet_attout->set_column( 'A:IZ', 14 );
 
     #  Freeze heading row
     $worksheet_attout->freeze_panes( 3, 0 );
@@ -618,10 +625,24 @@ sub excelout {
 
         my @split_line = split( /\t/x, $_ );    # split on tab
 
+        # Append command to margin here, column heading is COMMAND on first line 
+
    # check first line starts with HANDLE or 'Char or its not a valid attout file
         if ( $line =~ /^HANDLE/xsm || $line =~ /^'[0-9A-F]/xsm ) {
-
-            my $alph_offset = 1;
+            if ( $line =~ /^HANDLE/xsm ) {
+            # for header line, add COMMAND before HANDLE 
+            unshift @split_line, 'COMMAND';
+            }
+                else { 
+                # for other lines starting with an entity
+                $ent = $split_line[0];
+                # remove ' that is not part of the entity value
+                $ent =~ s/'//xsm;
+                
+                $command = '(COMMAND "ZOOM" "OBJECT" (HANDENT"'.$ent.'"))';
+                unshift @split_line, $command;
+               } 
+            my $alph_offset = 0;  # =1 to create an empty margin
 
             # column number is incremented by incrementing the alpha_offset
 
