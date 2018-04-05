@@ -10,7 +10,7 @@ Please excuse the alternative spellings; they are intended to prevent search eng
 dxMagic is watch folder based.  Folder names can be changed in the header of the scripts. Default names begin with *dx_* to show they belong to dxMagic and end in *_WATCH* if this is a trigger folder.  Placing a file in the WATCH folder will initiate file processing.  A dxf formatted file (name matched to the attribute file) also needs to be present as the dx_insert target.  In addition to the attout formatted text file an xlsx spread sheet is also provided.  This can be edited and converted to and attin/attout formatted text file with dx_xls2txt.  The build script will create an example directory structure, making this available as SAMBA shares.  Run the extract/insert/xlsx2txt scripts with -l for looping with verbose output. Use the dx_loop script to run all the scripts together and send the output to syslog.
 
 ## USING dx_extract (-h -l)
-`dx_extract.pl` will create the necessary folder structure when run (if not already present).
+`dx_extract.pl` and other dx scripts will create the necessary folder structure when run (if not already present).
 
 **dx_extract_WATCH** folder is for the dxx or dxf files to be parsed & has a readme for more info.   .  
 **dx_pass** is where successfully processed files are moved to.  
@@ -18,6 +18,10 @@ dxMagic is watch folder based.  Folder names can be changed in the header of the
 **dx_attout** is the resulting attout.txt files, keeping the same name but with a new extension.  
 **dx_xlsx** is the resulting attout.txt file converted to .xlsx format.  
 Files without the extension .dxx and .dxf (lower case) will not be processed.   
+
+Attribute data will be extracted as an attribute.txt file matching AutoKADs attribute export & also as an xlsx.
+The first column of the xlsx contains the zoom to object command for that entity.  Paste into the CAD command line and press
+return twice.  This Magic Margin will have future use.  The xlsx2txt script will ignore the A column; it can be used for notes.   
 
 ## USING dx_insert (-h -l)
 `dx_insert` takes an attout.txt formatted file (from AutoKADs attout/export attributes or dx_extract) and merges this data back into a dxf file of the same name (and the same meta-data of course)   
@@ -82,5 +86,5 @@ To display the block handle value from the drawing use the command use Lisp `(en
 To list objects in a block definition use `BLOCK?` if Express Tools area vailable.      
 To zoom to a block by handle value, `_ZOOM`, Select the Object option. When prompted to Select Objects, enter `(HANDENT "HandleID")`, press ENTER to Zoom to this object.  In practice this reduces to somthing like: `Z ENTER o ENTER (HANDENT"ABCD") ENTER ENTER`.  An object can be selected in a similar way with the `_SELECT` command.
 A hyphen before a command will avoid the dialog box. An asterisk before a block name will insert it exploded. `-insert:*MyBlock`  
-Command strings require a different syntax, for example zoom extents together becomes `(command "zoom" "e")`, zoom to a known object with handle entity 84E9, `(COMMAND "ZOOM" "OBJECT" (HANDENT"84E9"))`, then Return.      
+Command strings require a different syntax, for example zoom extents together becomes `(command "zoom" "e")`, zoom to a known object with handle entity 84E9, `(COMMAND "ZOOM" "OBJECT" (HANDENT"84E9"))`, then 2 x Return.      
 
