@@ -1,7 +1,7 @@
 # dxMagic
-Proof of concept DXF and DXX file parser to extract attribute meta-data.  This collection of Perl scripts is intented to run on Ubuntu server for which there is a build script.
+Proof of concept DXF and DXX file parser to extract attribute meta-data.  This collection of Perl scripts is intended to run on Ubuntu server for which there is a build script.
 
-dxMagic is a proof of concept attempt to take dxx output from AutoKAD LT/ProgKAD and turn it into an ATTOUT formatted text file.  This provides similar results to the ATTOUT function available in the full version of AutoKAD but using the `ATTEXT` function instead of `ATTOUT`.  With little modification it is possible to extend dxx parsing to entier ASCII dxf files.  In the case of a dxf file, all the attribute data from both model and paper space is extracted.  dx_extract makes it possible to extract attribute data directly from the drawing file without the need to open it in a CAD package.  `ATTIN` functionality is similary provided by merging attribute data back into the .dxf using dx_insert.
+dxMagic is a proof of concept attempt to take dxx output from AutoKAD LT/ProgKAD and turn it into an ATTOUT formatted text file.  This provides similar results to the ATTOUT function available in the full version of AutoKAD but using the `ATTEXT` function instead of `ATTOUT`.  With little modification it is possible to extend dxx parsing to entire ASCII dxf files.  In the case of a dxf file, all the attribute data from both model and paper space is extracted.  dx_extract makes it possible to extract attribute data directly from the drawing file without the need to open it in a CAD package.  `ATTIN` functionality is similarly provided by merging attribute data back into the .dxf using dx_insert.
 
 ### Looking for a CAD tutorial?
 Please excuse the alternative spellings; they are intended to prevent search engines picking up this document. Some AutoKAD commands will be explained but this is not a CAD tutorial. There are lots of good tutorials for AutoKAD. This is not one of them.
@@ -9,16 +9,19 @@ Please excuse the alternative spellings; they are intended to prevent search eng
 ## USING dxMagic
 dxMagic is watch folder based.  Folder names can be changed in the header of the scripts. Default names begin with *dx_* to show they belong to dxMagic and end in *_WATCH* if this is a trigger folder.  Placing a file in the WATCH folder will initiate file processing.  A dxf formatted file (name matched to the attribute file) also needs to be present as the dx_insert target.  In addition to the attout formatted text file an xlsx spread sheet is also provided.  This can be edited and converted to and attin/attout formatted text file with dx_xls2txt.  The build script will create an example directory structure, making this available as SAMBA shares.  Run the extract/insert/xlsx2txt scripts with -l for looping with verbose output. Use the dx_loop script to run all the scripts together and send the output to syslog.
 
+dx scripts will create the necessary folder structure when run (if not already present)   
+**dx_extract_WATCH** folder is for the dxx or dxf files to be parsed & has a readme for more info.   
+**dx_pass** is where successfully processed files are moved to.   
+**dx_fail** is for files which failed (valid file name but invalid content).   
+**dx_attout** is the resulting attout.txt files, keeping the same name but with a new extension.   
+**dx_xlsx** is the resulting attout.txt file converted to .xlsx format.   
+**dx_xlsx2txt_WATCH** is for converting .xlsx files to attribtue.txt 
+**dx_attin** holds attribute.txt files converted from .xlsx.    
+**dx_dxf4insert** should contain .dxf target files to accept data introduced to the **dx_insert_WATCH**
+
 ## USING dx_extract (-h -l)
-`dx_extract.pl` and other dx scripts will create the necessary folder structure when run (if not already present).
-
-**dx_extract_WATCH** folder is for the dxx or dxf files to be parsed & has a readme for more info.   .  
-**dx_pass** is where successfully processed files are moved to.  
-**dx_fail** is for files which failed (valid file name but invalid content).  
-**dx_attout** is the resulting attout.txt files, keeping the same name but with a new extension.  
-**dx_xlsx** is the resulting attout.txt file converted to .xlsx format.  
-Files without the extension .dxx and .dxf (lower case) will not be processed.   
-
+`dx_extract.pl` Extracts attribute data from .dxx and .dxf files.  Files without the extension .dxx and .dxf (lower case) will not be processed.   
+**dx_extract_WATCH** folder is used for these files, resulting attout.txt and attout.xlsx files are created in **dx_attout** & **dx_xlsx**    
 Attribute data will be extracted as an attribute.txt file matching AutoKADs attribute export & also as an xlsx.
 The first column of the xlsx contains the zoom to object command for that entity.  Paste into the CAD command line and press
 return twice.  This Magic Margin will have future use.  The xlsx2txt script will ignore the A column; it can be used for notes.   
@@ -41,7 +44,7 @@ In the future, the left most column might be used to flag a row for further proc
 having to move the processed attout file to the insert WATCH folder.    
 
 ### USING dxMagicbuilder & Installing dxMagic
-dxMagic is just a collection of Perl scripts. The build script dxMagicbuilder.pl will create an example directory structure, making this available as SAMBA shares. A default user 'alice' will be created with user defined password.  Excel creation requires the *Excel::Writer::XLSX* module to be installed; modules are added by the build script.  *Spreadsheet::Read* is required for the xlsx read subroutine. This also requires  *Spreadsheet::ParseXLSX*. Once Spreadsheet read isinstalled,`xlscat` command is available and very handy for teseting. 
+dxMagic is just a collection of Perl scripts. The build script dxMagicbuilder.pl will create an example directory structure, making this available as SAMBA shares. A default user 'alice' will be created with user defined password.  Excel creation requires the *Excel::Writer::XLSX* module to be installed; modules are added by the build script.  *Spreadsheet::Read* is required for the xlsx read subroutine. This also requires  *Spreadsheet::ParseXLSX*. Once Spreadsheet read is installed, the `xlscat` command is available and very handy for teseting. 
 `xlscat -i` is particularly handy to show a summary of sheet names and size only. 
 For Windows, install Strawberry Perl; use cpan to install cpanm,`cpan App::cpanminus`,  then install the modules with the cpanm command, for example `cpanm Excel::Writer::XLSX`.  Edit the script headers to create the necessary folders (with appropriate slash separators for your OS).  dxMagicbuilder is an install script to setup a test environment with SAMBA shares.
 dxMagicbuilder is a hacked version of the dbdotcad build script.  Its a mess.
@@ -83,8 +86,9 @@ Auto & Prog will save DWG to DXF but it is best practice to use the `AUDIT` comm
 Auto/ProgKAD has two different view modes.  MODEL space is where the design work is actually done and has defined units of measure to a defined resolution.  A viewport is created into the MODEL space, usually scaled to fit a given paper size.  Typically a drawing boarder is placed within the PAPER space so the viewport shows the desired area of the model scaled within the boarder.  The boarder can contain blocks and will usually contain attribute data to show the document title, versions & revisions.  The `ATTEXT` function can only select and create a dxx export from the drawing space visible at the time.  The dxf file is for a whole drawing, so parsing this file will result in all the meta-data from both MODEL and PAPER space being extracted. 
 
 To display the block handle value from the drawing use the command use Lisp `(entget (car (entsel)))` and look for group 5.  
-To list objects in a block definition use `BLOCK?` if Express Tools area vailable.      
-To zoom to a block by handle value, `_ZOOM`, Select the Object option. When prompted to Select Objects, enter `(HANDENT "HandleID")`, press ENTER to Zoom to this object.  In practice this reduces to somthing like: `Z ENTER o ENTER (HANDENT"ABCD") ENTER ENTER`.  An object can be selected in a similar way with the `_SELECT` command.
+To list objects in a block definition use `BLOCK?` if Express Tools area available.      
+To zoom to a block by handle value, `_ZOOM`, Select the Object option. When prompted to Select Objects, enter `(HANDENT "HandleID")`, press ENTER to Zoom to this object.  In practice this reduces to: `Z ENTER O ENTER (HANDENT"ABCD") ENTER ENTER`.  An object can be selected in a similar way with the `_SELECT` command.
 A hyphen before a command will avoid the dialog box. An asterisk before a block name will insert it exploded. `-insert:*MyBlock`  
-Command strings require a different syntax, for example zoom extents together becomes `(command "zoom" "e")`, zoom to a known object with handle entity 84E9, `(COMMAND "ZOOM" "OBJECT" (HANDENT"84E9"))`, then 2 x Return.      
+Command strings require a different syntax, for example zoom extents together becomes `(command "zoom" "e")`   
+To zoom to a known object with handle entity 84E9, with a sinle command line becomes `(COMMAND "ZOOM" "OBJECT" (HANDENT"84E9"))`, then 2 x ENTER.  This command was added to the COMMAND column in the extracted spread sheet as a handy way of finding the entity in the drawing by pasting this into Auto/ProgKADs command prompt.      
 
