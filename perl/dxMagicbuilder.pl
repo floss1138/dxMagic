@@ -17,7 +17,7 @@ use IPC::Open2;
 # useful, but without any warranty; without even the implied
 # warranty of merchantability or fitness for a particular purpose.
 
-our $VERSION = '0.0.55';
+our $VERSION = '0.0.56';
 
 # SERVER BUILD SCRIPT FOR dbDotCad & dxMagic  RUNNING ON Ubuntu server 12.04 to 16.04
 # Installs mongodb, adds required perl modules, other Linux commands and Samba
@@ -264,6 +264,9 @@ system("apt-get upgrade");
 
 print "\n Installing tree command\n";
 system("apt-get install tree");
+
+print "\n Installing mediainfo command\n";
+system("apt-get install mediainfo");
 
 print "\n Installing ssh (openssh-server\n";
 system ("apt-get install openssh-server");
