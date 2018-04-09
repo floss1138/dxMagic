@@ -594,7 +594,7 @@ $worksheet_rm->write( 'B14',
     $worksheet_rm->write( 'B17',
 "This sheet was created from $attout_basename, derived from a $status{'FileType'}, Title: $status{'DocTitle'}"
     );
-    $worksheet_rm->write( 'B17',
+    $worksheet_rm->write( 'B18',
         "ATTIRB  5 count $status{'Attrib5'}; SEQEND count $status{'Seqend'}" );
 
     my $worksheet_attout = $workbook->add_worksheet('attout');
