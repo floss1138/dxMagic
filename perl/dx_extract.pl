@@ -17,7 +17,7 @@ use Excel::Writer::XLSX;
 use IPC::Open2;
 use Carp;    #qw(:DEFAULT cluck);
 
-our $VERSION = '0.0.24';    # version of this script
+our $VERSION = '0.0.25';    # version of this script
 
 ##  Custom variables go here ##
 
@@ -40,6 +40,10 @@ my $dx_attout = "$path/dx_attout/";
 
 # dx Excel folder [Excel, .xlxs format version of the attout file]
 my $dx_xlsx = "$path/dx_xlsx/";
+
+# dx Insert folder [dxf target files for metadata replacement] 
+# This folder should be checked/created by the build and insert script
+my $dx_dxf4insert = "$path/dx_dxf4insert/";
 
 # Spread sheet can contain a command in the magic margin
 # variables to hold command & entity value 
@@ -507,6 +511,14 @@ sub xparser {
     my $passed = $dx_pass . basename($xfile);
     print ", Moving to $dx_pass ... \n";
     move( $xfile, $passed ) or croak "move of $xfile failed";
+    
+    # create a copy of the passed file if its a .dxf to the insert folder
+    # a clean version of the dxf should be in  passed & can be compared with the inserted version  
+    if ($xfile =~ m/\.dxf$/xms) {
+        my $insert = $dx_dxf4insert . basename($xfile);
+        print " Creating copy of $xfile in $dx_dxf4insert\n";
+        copy ( $passed, $insert ) or croak "copy of $xfile failed"; 
+        }
 
     print
 "\n ATTRIB,  5 count: $attrib5_count \n SEQEND count: $seqend_count, AcDbSequenceEnd count: $acdbend_count\n";
