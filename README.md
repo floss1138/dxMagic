@@ -22,6 +22,7 @@ dx scripts will create the necessary folder structure when run (if not already p
 ## USING dx_extract (-h -l)
 `dx_extract.pl` Extracts attribute data from .dxx and .dxf files.  Files without the extension .dxx and .dxf (lower case) will not be processed.   
 **dx_extract_WATCH** folder is used for these files, resulting attout.txt and attout.xlsx files are created in **dx_attout** & **dx_xlsx**    
+Successful files will be moved to **dx_pass** & a copy made to the **dx_dxf4insert** folder pending later insert operations.  
 Attribute data will be extracted as an attribute.txt file matching AutoKADs attribute export & also as an xlsx.
 The first column of the xlsx contains the zoom to object command for that entity.  Paste into the CAD command line and press
 return twice.  This Magic Margin will have future use.  The xlsx2txt script will ignore the A column; it can be used for notes.   
