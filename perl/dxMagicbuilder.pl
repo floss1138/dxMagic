@@ -17,7 +17,7 @@ use IPC::Open2;
 # useful, but without any warranty; without even the implied
 # warranty of merchantability or fitness for a particular purpose.
 
-our $VERSION = '0.0.56';
+our $VERSION = '0.0.57';
 
 # SERVER BUILD SCRIPT FOR dbDotCad & dxMagic  RUNNING ON Ubuntu server 12.04 to 16.04
 # Installs mongodb, adds required perl modules, other Linux commands and Samba
@@ -526,8 +526,9 @@ print
 system("mkdir /var/log/mongod");
 
 print "\n Now creating mongo config file: /root/mongodb/mongod.conf \n";
+# http interface was removed from 3.6 and above. mongod bails if these options are invalid
 system(
-"echo 'httpinterface=true' >> /root/mongodb/mongod.conf; echo 'rest=true' >> /root/mongodb/mongod.conf; echo 'fork=true' >> /root/mongodb/mongod.conf; echo 'logpath=/var/log/mongod/mongod.log' >> /root/mongodb/mongod.conf"
+"echo '# httpinterface=true' >> /root/mongodb/mongod.conf; echo '# rest=true' >> /root/mongodb/mongod.conf; echo '# fork=true' >> /root/mongodb/mongod.conf; echo 'logpath=/var/log/mongod/mongod.log' >> /root/mongodb/mongod.conf"
 );
 
 # run mongodb with the --config or -f option to load the specified conf file, e.g. mongod --config /root/mongodb/mongod.conf
