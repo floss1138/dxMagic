@@ -94,3 +94,11 @@ A hyphen before a command will avoid the dialog box. An asterisk before a block 
 Command strings require a different syntax, for example zoom extents together becomes `(command "zoom" "e")`   
 To zoom to a known object with handle entity 84E9, with a sinle command line becomes `(COMMAND "ZOOM" "OBJECT" (HANDENT"84E9"))`, then 2 x ENTER.  This command was added to the COMMAND column in the extracted spread sheet as a handy way of finding the entity in the drawing by pasting this into Auto/ProgKADs command prompt.      
 
+# Binary DXF
+Binary DXF files are not currently supported but preserve all of the accuracy in the drawing database. ProgKAD will save a binary DXF from the save as drop down.  
+AutoKAD also provides the binary DXF option from File, Save As... 
+then it is necessary to use the Tools drop down, select Option... DXF Options tab and select BINARY    
+Binary DXF was introduced in AutoKAD release 10.  The `DXFOUT` command will also open the Save As... dialogue.
+A binary DXF file begins with a 22-byte sentinel used to identify the format when the file is loaded.
+Currently **dx_extract** checks the file header and will print an warning if `/^AutoCAD\sBinary\sDXF/` is found.
+
