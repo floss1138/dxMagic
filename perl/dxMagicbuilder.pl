@@ -17,7 +17,7 @@ use IPC::Open2;
 # useful, but without any warranty; without even the implied
 # warranty of merchantability or fitness for a particular purpose.
 
-our $VERSION = '0.0.57';
+our $VERSION = '0.0.58';
 
 # SERVER BUILD SCRIPT FOR dbDotCad & dxMagic  RUNNING ON Ubuntu server 12.04 to 16.04
 # Installs mongodb, adds required perl modules, other Linux commands and Samba
@@ -85,7 +85,8 @@ ADDITIONS
 
 my $startup = << "START";
 #!/bin/bash
-sudo /root/mongodb/bin/mongod -f /root/mongodb/mongod.conf &
+sudo /root/mongodb/bin/mongod --dbpath /data/db --fork --logpath /root/mongodb/mongodb.log
+# sudo /root/mongodb/bin/mongod -f /root/mongodb/mongod.conf 
 # sudo perl /home/user/script1.pl &
 # sudo perl /home/user/script2.pl &
 
@@ -548,10 +549,13 @@ system("echo 'export PATH=/root/mongodb/bin:\$PATH' >> /root/.bashrc");
 print << "MESSAGE";
 
      ** About to start mongodb **
- Will now run mongod -f /root/mongodb/mongod.conf
+ used to run mongod -f /root/mongodb/mongod.conf
  This forks the mongod daemon with:
  httpinterface enabled on localhost:28017
  Logging to /var/log/mongod/mongod.log
+ but httpinterface was deprecated so now running it with fork and log in 
+ a sinle line:
+/root/mongodb/bin/mongod --dbpath /data/db --fork --logpath /root/mongodb/mongodb.log
 
  If the log file cannot be created, the mongod fork will not work.
  This will exit with a general error,
@@ -575,7 +579,8 @@ print << "MESSAGE";
 MESSAGE
 
 print "\n Starting mongod \n";
-system("/root/mongodb/bin/mongod -f /root/mongodb/mongod.conf");
+# system("/root/mongodb/bin/mongod -f /root/mongodb/mongod.conf");
+system("/root/mongodb/bin/mongod --dbpath /data/db --fork --logpath /root/mongodb/mongodb.log");
 
 print "Waiting a few seconds for mongod to start before testing ... \n";
 sleep 3;
