@@ -102,3 +102,6 @@ Binary DXF was introduced in AutoKAD release 10.  The `DXFOUT` command will also
 A binary DXF file begins with a 22-byte sentinel used to identify the format when the file is loaded.
 Currently **dx_extract** checks the file header and will print an warning if `/^AutoCAD\sBinary\sDXF/` is found.
 
+# Future utils
+The DWG Compare free msi add-in for AutoCAD (adds to ribbon Add-ins menu or the ribbon in the Classic toolbar as a plug-ins) presents as text and visual differences. 
+It would be nice to have a block attribute compare between drawings or drawing and database.   
