@@ -15,7 +15,7 @@ dx scripts will create the necessary folder structure when run (if not already p
 **dx_fail** is for files which failed (valid file name but invalid content).   
 **dx_attout** is the resulting attout.txt files, keeping the same name but with a new extension.   
 **dx_xlsx** is the resulting attout.txt file converted to .xlsx format.   
-**dx_xlsx2txt_WATCH** is for converting .xlsx files to attribtue.txt 
+**dx_xlsx2txt_WATCH** is for converting .xlsx files to attribtue.txt
 **dx_attin** holds attribute.txt files converted from .xlsx.    
 **dx_dxf4insert** should contain .dxf target files to accept data introduced to the **dx_insert_WATCH**
 
@@ -39,17 +39,17 @@ The attribute .txt file will be moved to the pass folder on successful completio
 **dx_xlsx2txt_WATCH** is for the .xlsx files produced by dx_extract. File must have an .xlsx extension.  
 **dx_attin** is the destination for the converted file.   
 attin/attout files should always have .txt extensions and Windows format new lines.   
-The .xlsx file produced by dx_extract has the first 2 rows and the first column as margin space.  These must remain & can be used for comments. 
+The .xlsx file produced by dx_extract has the first 2 rows and the first column as margin space.  These must remain & can be used for comments.
 In the future, the left most column might be used to flag a row for further processing if it contains the relevant command.   
--i option changes the insert path for source and destination to match the insert WATCH folder.  Running in this mode allows the xlsx conversion to be followed by insertion without 
+-i option changes the insert path for source and destination to match the insert WATCH folder.  Running in this mode allows the xlsx conversion to be followed by insertion without
 having to move the processed attout file to the insert WATCH folder.    
 
 ### USING dxMagicbuilder & Installing dxMagic
-dxMagic is just a collection of Perl scripts. The build script dxMagicbuilder.pl will create an example directory structure, making this available as SAMBA shares. A default user 'alice' will be created with user defined password.  Excel creation requires the *Excel::Writer::XLSX* module to be installed; modules are added by the build script.  *Spreadsheet::Read* is required for the xlsx read subroutine. This also requires  *Spreadsheet::ParseXLSX*. Once Spreadsheet read is installed, the `xlscat` command is available and very handy for teseting. 
-`xlscat -i` is particularly handy to show a summary of sheet names and size only. 
+dxMagic is just a collection of Perl scripts. The build script dxMagicbuilder.pl will create an example directory structure, making this available as SAMBA shares. A default user 'alice' will be created with user defined password.  Excel creation requires the *Excel::Writer::XLSX* module to be installed; modules are added by the build script.  *Spreadsheet::Read* is required for the xlsx read subroutine. This also requires  *Spreadsheet::ParseXLSX*. Once Spreadsheet read is installed, the `xlscat` command is available and very handy for teseting.
+`xlscat -i` is particularly handy to show a summary of sheet names and size only.
 For Windows, install Strawberry Perl; use cpan to install cpanm,`cpan App::cpanminus`,  then install the modules with the cpanm command, for example `cpanm Excel::Writer::XLSX`.  Edit the script headers to create the necessary folders (with appropriate slash separators for your OS).  dxMagicbuilder is an install script to setup a test environment with SAMBA shares.
 dxMagicbuilder is a hacked version of the dbdotcad build script.  Its a mess.
-For testing via an ssh session try using screen.  `screen`, `ctrl a + c` creates a new screen, `ctrl a + d` detaches the screen session leaving the processes running. 
+For testing via an ssh session try using screen.  `screen`, `ctrl a + c` creates a new screen, `ctrl a + d` detaches the screen session leaving the processes running.
 `ctrl a + n` for next screen, `ctrl a + p` for previous screen.  `screen -ls` to list screen sessions, reconnect with `screen -r <screen-shown-via-ls>`  
 
 ## A note on file formats ##
@@ -61,7 +61,7 @@ For testing via an ssh session try using screen.  `screen`, `ctrl a + c` creates
 
 In ProgKAD the ASCII or binary dxf is an obvious *save as* file selection.  In AutoKAD, binary dxf is selected in the *save as* Tools drop down >  Options > DXF Options tab,  Default is ASCII.   
 Although binary files are smaller and preserve floating point accuracy from the original drawing, only ASCII dxf is supported by dxmagic.
-	
+
 ## AutoKAD meta-data - a concise explanation for programmers
 
 AutoKAD can group graphical lines and key(property)/value data by creating a block.  This allows for easy duplication of commonly used items; for example, a block can be created for a chair and re-used several times in an office layout.  The chair block can optionally contain multiple key(property)/value pairs of meta-data, called attributes, designed to describe the chair or furniture class object.
@@ -85,7 +85,7 @@ AutoKAD light and ProgKAD do not have the attribute import/export tool; however,
 Auto & Prog will save DWG to DXF but it is best practice to use the `AUDIT` command to clean up the drawing prior to saving to DXF.  `PURGE` & `OVERKILL` are also useful for removing unwanted drawing components.  AutoKAD has been known to save into DXF and then not be able to load the file it just saved, without AUDITing first, Error in STYLE Tables with Invalid symbol table record names are common. The `ATTEXT` command (same as the earlier `DDATTEXT` command) can be used to save a selected area on a drawing in either MODEL or PAPER space.
 The `EXPORT` command (or File > Export) also has an option to save as DXX Extract (\*.dxx).  Note that the Export Metafile option is for saving as Windows graphical Metafiles (\*.wmf), not attribute metadata.
 
-Auto/ProgKAD has two different view modes.  MODEL space is where the design work is actually done and has defined units of measure to a defined resolution.  A viewport is created into the MODEL space, usually scaled to fit a given paper size.  Typically a drawing boarder is placed within the PAPER space so the viewport shows the desired area of the model scaled within the boarder.  The boarder can contain blocks and will usually contain attribute data to show the document title, versions & revisions.  The `ATTEXT` and `EXPORT`  functions can only select and create a \*.dxx export file from the drawing space visible at the time.  Working in dxf or saving the drawing as dxf file is for a whole drawing.  Parsing a \*.dxf file will result in all the meta-data from both MODEL and PAPER space being extracted. 
+Auto/ProgKAD has two different view modes.  MODEL space is where the design work is actually done and has defined units of measure to a defined resolution.  A viewport is created into the MODEL space, usually scaled to fit a given paper size.  Typically a drawing boarder is placed within the PAPER space so the viewport shows the desired area of the model scaled within the boarder.  The boarder can contain blocks and will usually contain attribute data to show the document title, versions & revisions.  The `ATTEXT` and `EXPORT`  functions can only select and create a \*.dxx export file from the drawing space visible at the time.  Working in dxf or saving the drawing as dxf file is for a whole drawing.  Parsing a \*.dxf file will result in all the meta-data from both MODEL and PAPER space being extracted.
 
 To display the block handle value from the drawing use the command use Lisp `(entget (car (entsel)))` and look for group 5.  
 To list objects in a block definition use `BLOCK?` if Express Tools area available.      
@@ -94,14 +94,24 @@ A hyphen before a command will avoid the dialog box. An asterisk before a block 
 Command strings require a different syntax, for example zoom extents together becomes `(command "zoom" "e")`   
 To zoom to a known object with handle entity 84E9, with a sinle command line becomes `(COMMAND "ZOOM" "OBJECT" (HANDENT"84E9"))`, then 2 x ENTER.  This command was added to the COMMAND column in the extracted spread sheet as a handy way of finding the entity in the drawing by pasting this into Auto/ProgKADs command prompt.      
 
+## Attribute association and inheritance
+
+It is a common requirement to associate one block with another where the parent block may have a unique serial/equipment/system/host name.  For example, a connector may be represented by a block which is part of i.e. associated with, a board or card also represented by a block.  That card fits into a chassis also represented by a block which in turn is fitted in a rack...  In the real world objects tend to nest in a parent/child way so the attribute definitions needs to be constructed to allow inherited values so some of the parent DNA can be found in its children.
+
+To track associations it is necessary to provide an attribute to take the value of the identifier from the parent IN A DIFFERENTLY NAMED FIELD.  It’s best practice to include the block name within tag name for this attribute.  CAD properties will show all the attribute tag names so the tag names of parent and child need to easily identified for copy and paste operation.  
+
+Making the association is simple.  Quick properties is your friend.  Select the parent block and one or more children.  Right click to access quick properties or the QP command.  QP window will appear by simply selecting blocks if QPMODE is 1.  Select Block reference from the drop down if other choices are available.  Now it’s possible to copy the parent attribute value to the children and see if they are not all equal (shows as \*VARIES\*).  It’S possible to customise which properties are visible in QP.
+
+Example: There is an equipment chassis with an asset number that takes several sub assemblies. The asset number is recorded in a attribute field called `asset_no`.  As it may be necessary to find which assemblies have been fitted to each chassis then the asset_no needs to be copied to the assembly blocks by creating another attribute in the 'children' blocks called `passet`.  Insert the parent block, adding the asset number.  Select parent and all sub assembly blocks then open QP and the Block references will show the asset_no value which can be copied in one paste operation to the (all) the fields named `passet`, associating the equipment chassis with the sub assemblies.
+
 # Binary DXF
 Binary DXF files are not currently supported but preserve all of the accuracy in the drawing database. ProgKAD will save a binary DXF from the save as drop down.  
-AutoKAD also provides the binary DXF option from File, Save As... 
+AutoKAD also provides the binary DXF option from File, Save As...
 then it is necessary to use the Tools drop down, select Option... DXF Options tab and select BINARY    
 Binary DXF was introduced in AutoKAD release 10.  The `DXFOUT` command will also open the Save As... dialogue.
 A binary DXF file begins with a 22-byte sentinel used to identify the format when the file is loaded.
 Currently **dx_extract** checks the file header and will print an warning if `/^AutoCAD\sBinary\sDXF/` is found.
 
 # Future utils
-The DWG Compare free msi add-in for AutoCAD (adds to ribbon Add-ins menu or the ribbon in the Classic toolbar as a plug-ins) presents as text and visual differences. 
+The DWG Compare free msi add-in for AutoCAD (adds to ribbon Add-ins menu or the ribbon in the Classic toolbar as a plug-ins) presents as text and visual differences.
 It would be nice to have a block attribute compare between drawings or drawing and database.   
