@@ -87,8 +87,9 @@ The `EXPORT` command (or File > Export) also has an option to save as DXX Extrac
 
 Auto/ProgKAD has two different view modes.  MODEL space is where the design work is actually done and has defined units of measure to a defined resolution.  A viewport is created into the MODEL space, usually scaled to fit a given paper size.  Typically a drawing boarder is placed within the PAPER space so the viewport shows the desired area of the model scaled within the boarder.  The boarder can contain blocks and will usually contain attribute data to show the document title, versions & revisions.  The `ATTEXT` and `EXPORT`  functions can only select and create a \*.dxx export file from the drawing space visible at the time.  Working in dxf or saving the drawing as dxf file is for a whole drawing.  Parsing a \*.dxf file will result in all the meta-data from both MODEL and PAPER space being extracted.
 
-To display the block handle value from the drawing use the command use Lisp `(entget (car (entsel)))` and look for group 5.  
-To list objects in a block definition use `BLOCK?` if Express Tools area available.      
+To display the block handle value from the a selected attribute use the use Lisp `(entget (car (entsel)))` and look for group 5.  
+To list objects in a block use `LIST`, the block handle is the after the BLOCK REFERENCE.   
+If Express Tools area available the `BLOCK?` command shows some information but does not show the AcDbEntity INSERT handle as above.         
 To zoom to a block by handle value, `_ZOOM`, Select the Object option. When prompted to Select Objects, enter `(HANDENT "HandleID")`, press ENTER to Zoom to this object.  In practice this reduces to: `Z ENTER O ENTER (HANDENT"ABCD") ENTER ENTER`.  An object can be selected in a similar way with the `_SELECT` command.
 A hyphen before a command will avoid the dialog box. An asterisk before a block name will insert it exploded. `-insert:*MyBlock`  
 Command strings require a different syntax, for example zoom extents together becomes `(command "zoom" "e")`   
